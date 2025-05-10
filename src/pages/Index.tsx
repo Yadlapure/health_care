@@ -1,12 +1,17 @@
 
 import React, { useState } from 'react';
-import { X, Heart, Phone, Calendar, Hospital, BriefcaseMedical, Monitor, Users, User, Bed } from 'lucide-react';
+import { X, Menu, Heart, Phone, Calendar, Hospital, BriefcaseMedical, Monitor, Users, User, Bed, CreditCard, FileText, Settings, Info, Tool } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 
 const Index = () => {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [mobileNumber, setMobileNumber] = useState('');
+  const [activeSection, setActiveSection] = useState('home');
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,15 +32,90 @@ const Index = () => {
     setMobileNumber('');
   };
 
+  const scrollToSection = (sectionId: string) => {
+    setActiveSection(sectionId);
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const navItems = [
+    { id: 'home', label: 'Home', icon: <Hospital className="h-5 w-5" /> },
+    { id: 'about', label: 'About Us', icon: <Info className="h-5 w-5" /> },
+    { id: 'services', label: 'Services', icon: <Settings className="h-5 w-5" /> },
+    { id: 'equipment', label: 'Equipment', icon: <Tool className="h-5 w-5" /> },
+    { id: 'sop', label: 'SOP', icon: <FileText className="h-5 w-5" /> },
+    { id: 'payment', label: 'Payment', icon: <CreditCard className="h-5 w-5" /> },
+    { id: 'contact', label: 'Contact Us', icon: <Phone className="h-5 w-5" /> },
+  ];
+
+  const renderNavigation = () => {
+    if (isMobile) {
+      return (
+        <Sheet>
+          <SheetTrigger className="p-2">
+            <Menu className="h-6 w-6" />
+          </SheetTrigger>
+          <SheetContent side="left" className="w-[250px] p-0">
+            <div className="flex flex-col h-full bg-white">
+              <div className="flex items-center p-4 border-b">
+                <Hospital className="text-primary h-6 w-6 mr-2" />
+                <span className="text-lg font-semibold text-primary">Healthcare Haven</span>
+              </div>
+              <nav className="flex-1 overflow-auto">
+                <ul className="py-2">
+                  {navItems.map(item => (
+                    <li key={item.id}>
+                      <button
+                        onClick={() => {
+                          scrollToSection(item.id);
+                        }}
+                        className={`w-full text-left flex items-center px-4 py-3 hover:bg-gray-100 ${
+                          activeSection === item.id ? 'bg-primary/10 text-primary font-medium' : ''
+                        }`}
+                      >
+                        <span className="mr-3">{item.icon}</span>
+                        {item.label}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            </div>
+          </SheetContent>
+        </Sheet>
+      );
+    }
+
+    return (
+      <nav className="hidden md:flex items-center space-x-6">
+        {navItems.map(item => (
+          <button
+            key={item.id}
+            onClick={() => scrollToSection(item.id)}
+            className={`text-sm font-medium hover:text-primary transition-colors ${
+              activeSection === item.id ? 'text-primary' : 'text-gray-600'
+            }`}
+          >
+            {item.label}
+          </button>
+        ))}
+      </nav>
+    );
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* Navbar */}
       <nav className="sticky top-0 z-50 bg-white shadow-sm">
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
           <div className="flex items-center">
+            {isMobile && renderNavigation()}
             <Hospital className="text-primary h-8 w-8 mr-2" />
             <span className="text-xl font-bold text-primary">HealthCare Haven</span>
           </div>
+          {!isMobile && renderNavigation()}
           <button
             onClick={() => setShowLoginModal(true)}
             className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-md font-medium transition-colors"
@@ -46,7 +126,7 @@ const Index = () => {
       </nav>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-b from-blue-50 to-white py-16 md:py-24">
+      <section id="home" className="bg-gradient-to-b from-blue-50 to-white py-16 md:py-24">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="md:w-1/2">
@@ -75,8 +155,43 @@ const Index = () => {
         </div>
       </section>
 
+      {/* About Us Section */}
+      <section id="about" className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-4">About Us</h2>
+          <p className="text-gray-600 text-center max-w-3xl mx-auto mb-12">
+            Healthcare Haven was founded with a mission to make quality healthcare accessible to everyone in the comfort of their homes.
+          </p>
+          
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div>
+              <img 
+                src="https://images.unsplash.com/photo-1651008376811-b90baee60c1f"
+                alt="Healthcare Haven team of medical professionals"
+                className="rounded-lg shadow-md w-full h-auto"
+              />
+            </div>
+            <div>
+              <h3 className="text-2xl font-bold mb-4">Our Mission</h3>
+              <p className="text-gray-600 mb-6">
+                At Healthcare Haven, we believe that quality healthcare should be accessible to everyone, regardless of mobility constraints, busy schedules, or geographical barriers. Our mission is to bridge the gap between traditional healthcare facilities and patients by bringing professional medical services directly to your doorstep.
+              </p>
+              <h3 className="text-2xl font-bold mb-4">Our Team</h3>
+              <p className="text-gray-600 mb-6">
+                Our team consists of certified healthcare professionals including doctors, nurses, therapists, and caregivers who are not only experts in their respective fields but also compassionate individuals dedicated to providing personalized care.
+              </p>
+              <div className="bg-blue-50 border-l-4 border-primary p-4">
+                <p className="text-sm font-medium">
+                  All our healthcare providers undergo rigorous background checks, are fully vaccinated, and follow strict hygiene protocols to ensure your safety and well-being.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Services Section */}
-      <section className="py-16 bg-white">
+      <section id="services" className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12">Our Home Health Services</h2>
           
@@ -188,6 +303,220 @@ const Index = () => {
           </div>
         </div>
       </section>
+      
+      {/* Equipment Section */}
+      <section id="equipment" className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-12">Medical Equipment</h2>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100">
+              <div className="h-48 flex items-center justify-center mb-6 bg-gray-50 rounded-md">
+                <img 
+                  src="https://images.unsplash.com/photo-1584982751601-97dcc096659c"
+                  alt="Portable ECG Monitor" 
+                  className="h-40 object-contain" 
+                />
+              </div>
+              <h3 className="text-xl font-bold mb-2">Portable ECG Monitor</h3>
+              <p className="text-gray-600">Advanced portable ECG monitoring for convenient cardiac assessment at home. Our healthcare professionals bring hospital-grade equipment to your doorstep.</p>
+            </div>
+            
+            <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100">
+              <div className="h-48 flex items-center justify-center mb-6 bg-gray-50 rounded-md">
+                <img 
+                  src="https://images.unsplash.com/photo-1603398938378-e54eab446dde"
+                  alt="Advanced Blood Pressure Monitor" 
+                  className="h-40 object-contain" 
+                />
+              </div>
+              <h3 className="text-xl font-bold mb-2">Blood Pressure Monitor</h3>
+              <p className="text-gray-600">Clinical-grade blood pressure monitoring equipment for accurate readings and tracking. Helps maintain optimal health with professional guidance.</p>
+            </div>
+            
+            <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100">
+              <div className="h-48 flex items-center justify-center mb-6 bg-gray-50 rounded-md">
+                <img 
+                  src="https://images.unsplash.com/photo-1589210138848-aec229844c51"
+                  alt="Oxygen Therapy Equipment" 
+                  className="h-40 object-contain" 
+                />
+              </div>
+              <h3 className="text-xl font-bold mb-2">Oxygen Therapy Equipment</h3>
+              <p className="text-gray-600">Comprehensive oxygen therapy solutions for patients needing respiratory support at home, including portable oxygen concentrators and related accessories.</p>
+            </div>
+          </div>
+          
+          <div className="mt-12 text-center">
+            <button 
+              onClick={() => setShowLoginModal(true)}
+              className="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-md font-medium transition-colors"
+            >
+              Request Equipment Information
+            </button>
+          </div>
+        </div>
+      </section>
+      
+      {/* Standard Operating Procedures */}
+      <section id="sop" className="py-16 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-8">Our Standard Operating Procedures</h2>
+          <p className="text-gray-600 text-center max-w-3xl mx-auto mb-12">
+            We maintain strict protocols to ensure the highest quality of care and safety for our patients
+          </p>
+          
+          <div className="grid md:grid-cols-2 gap-8">
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <h3 className="text-xl font-bold mb-4 flex items-center">
+                <FileText className="text-primary h-6 w-6 mr-2" />
+                HIPAA Compliance
+              </h3>
+              <p className="text-gray-600 mb-4">
+                All our services strictly adhere to HIPAA regulations, ensuring complete confidentiality and protection of your health information. Our digital systems are encrypted and our staff is thoroughly trained in privacy practices.
+              </p>
+              <div className="bg-blue-50 p-4 rounded-md">
+                <p className="text-sm">
+                  Our Security Operations Center (SOC) continuously monitors all systems to detect and prevent any potential data breaches.
+                </p>
+              </div>
+            </div>
+            
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <h3 className="text-xl font-bold mb-4 flex items-center">
+                <FileText className="text-primary h-6 w-6 mr-2" />
+                Infection Control
+              </h3>
+              <p className="text-gray-600 mb-4">
+                Our healthcare professionals follow rigorous infection control protocols, including proper hand hygiene, use of personal protective equipment (PPE), and sterilization of medical instruments to prevent cross-contamination.
+              </p>
+              <div className="bg-blue-50 p-4 rounded-md">
+                <p className="text-sm">
+                  All healthcare providers undergo regular training on the latest infection control guidelines and are tested regularly to ensure compliance.
+                </p>
+              </div>
+            </div>
+            
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <h3 className="text-xl font-bold mb-4 flex items-center">
+                <FileText className="text-primary h-6 w-6 mr-2" />
+                Emergency Response
+              </h3>
+              <p className="text-gray-600 mb-4">
+                We have established clear protocols for handling emergencies during home visits. Our healthcare providers are trained in emergency procedures and carry essential emergency response equipment at all times.
+              </p>
+              <div className="bg-blue-50 p-4 rounded-md">
+                <p className="text-sm">
+                  We maintain direct communication channels with local emergency services to ensure rapid response if needed.
+                </p>
+              </div>
+            </div>
+            
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <h3 className="text-xl font-bold mb-4 flex items-center">
+                <FileText className="text-primary h-6 w-6 mr-2" />
+                Quality Assurance
+              </h3>
+              <p className="text-gray-600 mb-4">
+                Our services undergo regular quality checks and evaluations. We collect patient feedback after each visit and conduct periodic reviews of our healthcare providers to maintain our high standards of care.
+              </p>
+              <div className="bg-blue-50 p-4 rounded-md">
+                <p className="text-sm">
+                  We are accredited by leading healthcare organizations and regularly update our protocols based on the latest research and best practices.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Payment Section */}
+      <section id="payment" className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-8">Payment Options</h2>
+          <p className="text-gray-600 text-center max-w-3xl mx-auto mb-12">
+            We offer flexible payment solutions to make healthcare accessible and affordable for everyone
+          </p>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="bg-white rounded-lg shadow-md p-6 border-t-4 border-primary">
+              <h3 className="text-xl font-bold mb-4">Insurance Coverage</h3>
+              <p className="text-gray-600 mb-6">
+                We accept a wide range of insurance plans. Our team will verify your coverage before services begin and handle all the paperwork to make the process seamless for you.
+              </p>
+              <ul className="space-y-2 mb-6">
+                <li className="flex items-center">
+                  <CreditCard className="text-primary h-5 w-5 mr-2" />
+                  <span>Major insurance providers accepted</span>
+                </li>
+                <li className="flex items-center">
+                  <FileText className="text-primary h-5 w-5 mr-2" />
+                  <span>Transparent claims process</span>
+                </li>
+                <li className="flex items-center">
+                  <Phone className="text-primary h-5 w-5 mr-2" />
+                  <span>Dedicated insurance coordinator</span>
+                </li>
+              </ul>
+            </div>
+            
+            <div className="bg-white rounded-lg shadow-md p-6 border-t-4 border-primary">
+              <h3 className="text-xl font-bold mb-4">Direct Payment</h3>
+              <p className="text-gray-600 mb-6">
+                We offer competitive rates for our services with transparent pricing. Pay directly for the services you need without hidden fees or long-term commitments.
+              </p>
+              <ul className="space-y-2 mb-6">
+                <li className="flex items-center">
+                  <CreditCard className="text-primary h-5 w-5 mr-2" />
+                  <span>Credit/debit cards accepted</span>
+                </li>
+                <li className="flex items-center">
+                  <CreditCard className="text-primary h-5 w-5 mr-2" />
+                  <span>Secure online payment portal</span>
+                </li>
+                <li className="flex items-center">
+                  <FileText className="text-primary h-5 w-5 mr-2" />
+                  <span>Detailed electronic receipts</span>
+                </li>
+              </ul>
+            </div>
+            
+            <div className="bg-white rounded-lg shadow-md p-6 border-t-4 border-primary">
+              <h3 className="text-xl font-bold mb-4">Membership Plans</h3>
+              <p className="text-gray-600 mb-6">
+                Our membership plans offer regular healthcare services at discounted rates. Choose a plan that fits your needs and budget for ongoing care.
+              </p>
+              <ul className="space-y-2 mb-6">
+                <li className="flex items-center">
+                  <CreditCard className="text-primary h-5 w-5 mr-2" />
+                  <span>Monthly or annual subscriptions</span>
+                </li>
+                <li className="flex items-center">
+                  <Heart className="text-primary h-5 w-5 mr-2" />
+                  <span>Priority scheduling</span>
+                </li>
+                <li className="flex items-center">
+                  <FileText className="text-primary h-5 w-5 mr-2" />
+                  <span>Complimentary health assessments</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="mt-12 bg-blue-50 p-6 rounded-lg max-w-3xl mx-auto">
+            <h4 className="font-bold text-lg mb-4">Need help with payment options?</h4>
+            <p className="text-gray-600 mb-4">
+              Our financial counselors are available to discuss your specific situation and help you find the most affordable payment solution. We believe everyone deserves access to quality healthcare.
+            </p>
+            <button 
+              onClick={() => setShowLoginModal(true)}
+              className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-md font-medium transition-colors"
+            >
+              Speak to a Financial Counselor
+            </button>
+          </div>
+        </div>
+      </section>
 
       {/* Testimonials Section */}
       <section className="py-16 bg-gray-50">
@@ -244,7 +573,7 @@ const Index = () => {
       </section>
 
       {/* Contact Section */}
-      <section className="py-16 bg-white">
+      <section id="contact" className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="md:w-1/2">
@@ -314,10 +643,13 @@ const Index = () => {
             <div>
               <h3 className="text-lg font-bold mb-4">Quick Links</h3>
               <ul className="space-y-2">
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Home</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Services</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">About Us</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Contact Us</a></li>
+                <li><button onClick={() => scrollToSection('home')} className="text-gray-400 hover:text-white transition-colors">Home</button></li>
+                <li><button onClick={() => scrollToSection('about')} className="text-gray-400 hover:text-white transition-colors">About Us</button></li>
+                <li><button onClick={() => scrollToSection('services')} className="text-gray-400 hover:text-white transition-colors">Services</button></li>
+                <li><button onClick={() => scrollToSection('equipment')} className="text-gray-400 hover:text-white transition-colors">Equipment</button></li>
+                <li><button onClick={() => scrollToSection('sop')} className="text-gray-400 hover:text-white transition-colors">SOP</button></li>
+                <li><button onClick={() => scrollToSection('payment')} className="text-gray-400 hover:text-white transition-colors">Payment</button></li>
+                <li><button onClick={() => scrollToSection('contact')} className="text-gray-400 hover:text-white transition-colors">Contact Us</button></li>
               </ul>
             </div>
             <div>
