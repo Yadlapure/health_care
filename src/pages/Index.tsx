@@ -9,6 +9,7 @@ const Index = () => {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [mobileNumber, setMobileNumber] = useState('');
   const [activeSection, setActiveSection] = useState('home');
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
@@ -33,6 +34,7 @@ const Index = () => {
 
   const scrollToSection = (sectionId: string) => {
     setActiveSection(sectionId);
+    setIsMenuOpen(false); // Close mobile menu when a section is clicked
     const element = document.getElementById(sectionId);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
@@ -52,8 +54,8 @@ const Index = () => {
   const renderNavigation = () => {
     if (isMobile) {
       return (
-        <Sheet>
-          <SheetTrigger className="p-2">
+        <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+          <SheetTrigger className="p-2" onClick={() => setIsMenuOpen(true)}>
             <Menu className="h-6 w-6" />
           </SheetTrigger>
           <SheetContent side="left" className="w-[250px] p-0">
