@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { X, Menu, Heart, Phone, Calendar, Hospital, BriefcaseMedical, Monitor, Users, User, Bed, CreditCard, FileText, Settings, Info, Tool } from 'lucide-react';
+import { X, Menu, Heart, Phone, Calendar, Hospital, BriefcaseMedical, Monitor, Users, User, Bed, CreditCard, FileText, Settings, Info, Wrench } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -44,7 +43,7 @@ const Index = () => {
     { id: 'home', label: 'Home', icon: <Hospital className="h-5 w-5" /> },
     { id: 'about', label: 'About Us', icon: <Info className="h-5 w-5" /> },
     { id: 'services', label: 'Services', icon: <Settings className="h-5 w-5" /> },
-    { id: 'equipment', label: 'Equipment', icon: <Tool className="h-5 w-5" /> },
+    { id: 'equipment', label: 'Equipment', icon: <Wrench className="h-5 w-5" /> },
     { id: 'sop', label: 'SOP', icon: <FileText className="h-5 w-5" /> },
     { id: 'payment', label: 'Payment', icon: <CreditCard className="h-5 w-5" /> },
     { id: 'contact', label: 'Contact Us', icon: <Phone className="h-5 w-5" /> },
