@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { X, Heart, Phone } from 'lucide-react';
+import { X, Heart, Phone, Calendar, Hospital, BriefcaseMedical, Monitor, Users, User, Bed } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
@@ -33,8 +33,8 @@ const Index = () => {
       <nav className="sticky top-0 z-50 bg-white shadow-sm">
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
           <div className="flex items-center">
-            <Heart className="text-primary h-8 w-8 mr-2" />
-            <span className="text-xl font-bold text-primary">HealthCare</span>
+            <Hospital className="text-primary h-8 w-8 mr-2" />
+            <span className="text-xl font-bold text-primary">HealthCare Haven</span>
           </div>
           <button
             onClick={() => setShowLoginModal(true)}
@@ -55,7 +55,7 @@ const Index = () => {
                 <span className="text-primary">At Your Doorstep</span>
               </h1>
               <p className="text-lg text-gray-600 mb-8">
-                We bring quality healthcare services directly to your home, ensuring comfort and convenience for you and your loved ones.
+                We bring quality healthcare services directly to your home, ensuring comfort and convenience for you and your loved ones. Our team of certified medical professionals is available 24/7.
               </p>
               <button
                 onClick={() => setShowLoginModal(true)}
@@ -66,8 +66,8 @@ const Index = () => {
             </div>
             <div className="md:w-1/2">
               <img
-                src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158"
-                alt="Healthcare at home"
+                src="https://images.unsplash.com/photo-1584432810601-6c7f27d2362b"
+                alt="Doctor with stethoscope providing home healthcare"
                 className="rounded-lg shadow-lg w-full h-auto"
               />
             </div>
@@ -80,12 +80,12 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12">Our Home Health Services</h2>
           
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="grid md:grid-cols-3 gap-8">
             {/* Regular Health Checkups Card */}
             <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow">
               <img
-                src="https://images.unsplash.com/photo-1518770660439-4636190af475"
-                alt="Regular Health Checkups"
+                src="https://images.unsplash.com/photo-1631815588090-d1bcbe9b4b59"
+                alt="Doctor checking patient's vitals at home"
                 className="w-full h-64 object-cover"
               />
               <div className="p-6">
@@ -95,26 +95,32 @@ const Index = () => {
                 </p>
                 <ul className="space-y-2 mb-6">
                   <li className="flex items-center">
-                    <Heart className="text-primary h-5 w-5 mr-2" />
+                    <BriefcaseMedical className="text-primary h-5 w-5 mr-2" />
                     <span>Vital signs monitoring</span>
                   </li>
                   <li className="flex items-center">
-                    <Heart className="text-primary h-5 w-5 mr-2" />
+                    <Monitor className="text-primary h-5 w-5 mr-2" />
                     <span>Blood tests and analysis</span>
                   </li>
                   <li className="flex items-center">
-                    <Heart className="text-primary h-5 w-5 mr-2" />
+                    <Calendar className="text-primary h-5 w-5 mr-2" />
                     <span>Personalized health plans</span>
                   </li>
                 </ul>
+                <button 
+                  onClick={() => setShowLoginModal(true)}
+                  className="w-full bg-primary/10 hover:bg-primary/20 text-primary font-medium py-2 rounded-md transition-colors"
+                >
+                  Schedule Checkup
+                </button>
               </div>
             </div>
 
             {/* Elderly Care Card */}
             <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow">
               <img
-                src="https://images.unsplash.com/photo-1518005020951-eccb494ad742"
-                alt="Elderly Care"
+                src="https://images.unsplash.com/photo-1576765608866-5b51046452be"
+                alt="Caregiver assisting elderly patient"
                 className="w-full h-64 object-cover"
               />
               <div className="p-6">
@@ -124,11 +130,11 @@ const Index = () => {
                 </p>
                 <ul className="space-y-2 mb-6">
                   <li className="flex items-center">
-                    <Heart className="text-primary h-5 w-5 mr-2" />
+                    <User className="text-primary h-5 w-5 mr-2" />
                     <span>Personal hygiene assistance</span>
                   </li>
                   <li className="flex items-center">
-                    <Heart className="text-primary h-5 w-5 mr-2" />
+                    <BriefcaseMedical className="text-primary h-5 w-5 mr-2" />
                     <span>Medication management</span>
                   </li>
                   <li className="flex items-center">
@@ -136,24 +142,124 @@ const Index = () => {
                     <span>Companionship and emotional support</span>
                   </li>
                 </ul>
+                <button 
+                  onClick={() => setShowLoginModal(true)}
+                  className="w-full bg-primary/10 hover:bg-primary/20 text-primary font-medium py-2 rounded-md transition-colors"
+                >
+                  Hire Caregiver
+                </button>
+              </div>
+            </div>
+            
+            {/* Post-Surgery Care Card */}
+            <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow">
+              <img
+                src="https://images.unsplash.com/photo-1579684385127-1ef15d508118"
+                alt="Nurse providing post-surgery care at home"
+                className="w-full h-64 object-cover"
+              />
+              <div className="p-6">
+                <h3 className="text-xl font-bold mb-3">Post-Surgery Care</h3>
+                <p className="text-gray-600 mb-4">
+                  Recovering from surgery is easier with our specialized post-operative care. We ensure proper wound care, pain management, and rehabilitation exercises in the comfort of your home.
+                </p>
+                <ul className="space-y-2 mb-6">
+                  <li className="flex items-center">
+                    <Bed className="text-primary h-5 w-5 mr-2" />
+                    <span>Wound dressing and care</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Users className="text-primary h-5 w-5 mr-2" />
+                    <span>Physical therapy assistance</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Monitor className="text-primary h-5 w-5 mr-2" />
+                    <span>Recovery progress monitoring</span>
+                  </li>
+                </ul>
+                <button 
+                  onClick={() => setShowLoginModal(true)}
+                  className="w-full bg-primary/10 hover:bg-primary/20 text-primary font-medium py-2 rounded-md transition-colors"
+                >
+                  Request Care
+                </button>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Contact Section */}
+      {/* Testimonials Section */}
       <section className="py-16 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-12">What Our Patients Say</h2>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <div className="flex items-center mb-4">
+                <div className="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center">
+                  <User className="h-6 w-6 text-gray-500" />
+                </div>
+                <div className="ml-4">
+                  <h4 className="font-bold">Sarah Johnson</h4>
+                  <p className="text-gray-500 text-sm">Regular Health Checkup</p>
+                </div>
+              </div>
+              <p className="text-gray-600">
+                "The convenience of having healthcare professionals come to my home for regular checkups has been invaluable. They're always thorough and take the time to answer all my questions."
+              </p>
+            </div>
+            
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <div className="flex items-center mb-4">
+                <div className="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center">
+                  <User className="h-6 w-6 text-gray-500" />
+                </div>
+                <div className="ml-4">
+                  <h4 className="font-bold">Robert Williams</h4>
+                  <p className="text-gray-500 text-sm">Elderly Care</p>
+                </div>
+              </div>
+              <p className="text-gray-600">
+                "The caregivers for my father have been exceptional. Their compassion and professionalism have given our family peace of mind knowing he's well cared for at home."
+              </p>
+            </div>
+            
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <div className="flex items-center mb-4">
+                <div className="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center">
+                  <User className="h-6 w-6 text-gray-500" />
+                </div>
+                <div className="ml-4">
+                  <h4 className="font-bold">Emily Chen</h4>
+                  <p className="text-gray-500 text-sm">Post-Surgery Care</p>
+                </div>
+              </div>
+              <p className="text-gray-600">
+                "After my knee surgery, having professional care at home made recovery so much easier. The nurses were skilled and encouraging throughout my rehabilitation."
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Contact Section */}
+      <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="md:w-1/2">
               <h2 className="text-3xl font-bold mb-6">Need Immediate Assistance?</h2>
               <p className="text-lg text-gray-600 mb-8">
-                Our healthcare professionals are available 24/7 to assist you with any concerns or emergencies. Don't hesitate to reach out.
+                Our healthcare professionals are available 24/7 to assist you with any concerns or emergencies. Don't hesitate to reach out for quality home healthcare services.
               </p>
               <div className="flex items-center mb-4">
                 <Phone className="text-primary h-6 w-6 mr-3" />
                 <span className="text-xl font-semibold">+1 (800) 123-4567</span>
+              </div>
+              <div className="bg-blue-50 border-l-4 border-primary p-4 mt-6">
+                <p className="text-sm">
+                  <strong>Our commitment to you:</strong> All our healthcare providers are fully vaccinated, follow strict hygiene protocols, and are regularly tested to ensure your safety.
+                </p>
               </div>
             </div>
             <div className="md:w-1/2 bg-white p-6 rounded-lg shadow-md">
@@ -174,6 +280,16 @@ const Index = () => {
                   placeholder="Enter your mobile number"
                 />
               </div>
+              <div className="mb-4">
+                <label className="block text-gray-700 mb-2">Service Needed</label>
+                <select className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                  <option value="">Select a service</option>
+                  <option value="checkup">Regular Health Checkup</option>
+                  <option value="elderly">Elderly Care</option>
+                  <option value="surgery">Post-Surgery Care</option>
+                  <option value="other">Other Services</option>
+                </select>
+              </div>
               <button className="w-full bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-md font-medium transition-colors">
                 Request Callback
               </button>
@@ -188,11 +304,11 @@ const Index = () => {
           <div className="grid md:grid-cols-3 gap-8">
             <div>
               <div className="flex items-center mb-4">
-                <Heart className="text-white h-8 w-8 mr-2" />
-                <span className="text-xl font-bold">HealthCare</span>
+                <Hospital className="text-white h-8 w-8 mr-2" />
+                <span className="text-xl font-bold">HealthCare Haven</span>
               </div>
               <p className="text-gray-400">
-                Providing quality healthcare services at the comfort of your home.
+                Providing quality healthcare services at the comfort of your home, with certified medical professionals available 24/7.
               </p>
             </div>
             <div>
@@ -214,7 +330,7 @@ const Index = () => {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-            <p className="text-gray-400 text-sm">© 2025 HealthCare. All rights reserved.</p>
+            <p className="text-gray-400 text-sm">© 2025 HealthCare Haven. All rights reserved.</p>
             <p className="text-gray-400 text-sm mt-2 md:mt-0">
               Protected by our Security Operations Center (SOC) | HIPAA Compliant
             </p>
