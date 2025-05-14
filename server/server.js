@@ -14,7 +14,13 @@ mongoose
   .then(() => console.log("Mongo connected"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
-app.use("/api/auth", require("./routes/auth"));
-app.use("/api/practitioner", require("./routes/practitioner"));
+
+  //route imports
+const user = require("./routes/auth");
+const practioner = require("./routes/practitioner");
+
+
+app.use("/api/v1", user);
+app.use("/api/v1", practioner);
 
 app.listen(4000, () => console.log("Server running on port 4000"));
