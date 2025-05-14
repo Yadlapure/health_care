@@ -91,5 +91,4 @@ const {
 router.route("/upload-selfie").post(auth,uploadSelfie)
 router.route("/upload-report").post(auth,uploadReport)
 
-
 module.exports = router;

@@ -28,10 +28,12 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(fileUpload());
 
 const user = require("./routes/auth");
+const client = require("./routes/client")
 const practitioner = require("./routes/practitioner");
 
 
 app.use("/api/v1/user", user);
+app.use("/api/v1/client", client);
 app.use("/api/v1/practitioner", practitioner);
 
 app.listen(4000, () => console.log("Server running on port 4000"));
