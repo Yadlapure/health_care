@@ -13,6 +13,12 @@ const userSchema = new mongoose.Schema({
     lat: Number,
     lng: Number,
   },
+  practitionerLocation:{
+    lat: Number,
+    lng: Number,
+  },
+  assignedId: String,
+  visitId: [String]
 });
 
 module.exports = mongoose.model("User", userSchema);

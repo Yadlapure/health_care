@@ -1,23 +1,27 @@
 const mongoose = require("mongoose");
 
 const visitSchema = new mongoose.Schema({
-  clientId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-  practitionerId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-  coordinatorId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  clientId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: "User" },
+  practitionerId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: "User" },
+  // coordinatorId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
 
-  checkInLocation: { lat: Number, lng: Number },
-  checkInPhoto: String,
-  checkInTime: Date,
+  checkIn: {
+    photo: String,
+    time: Date,
+  },
 
-  checkOutLocation: { lat: Number, lng: Number },
-  checkOutPhoto: String,
-  checkOutTime: Date,
+  checkOut: {
+    photo: String,
+    time: Date,
+  },
 
   report: {
     bloodPressure: String,
     sugar: String,
     notes: String,
-    prescription: String,
+    prescription_images: [{
+      imgUrl: String
+    }],
   },
 });
 
