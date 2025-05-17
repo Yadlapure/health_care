@@ -30,3 +30,10 @@ async def generate_user_login(mobile: str, password: str):
 
 async def change_sub_merchant_password(user_id,new_password):
     pass
+
+
+async def get_all_users():
+    users = await Yasho_User.find({"entity_type": {"$in": ["client", "pract"]}}).to_list()
+    if not users:
+        return "No users in database",400
+    return users,0

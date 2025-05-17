@@ -2,7 +2,8 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
 from app.app_bundle.auth.authorized_req_user import CurrentUserInfo, get_current_user
-from app.user.user_service import generate_user_login, get_user, create_user, change_sub_merchant_password
+from app.user.user_enum import UserEntity
+from app.user.user_service import generate_user_login, get_user, create_user, change_sub_merchant_password, get_all_users
 
 user_router = APIRouter()
 
@@ -61,7 +62,6 @@ async def bull_shit_login(
     return {"status_code": status_code, "error": response}
 
 
-
 @user_router.get("/me")
 async def handler_get_me_detail(
         curr_user: CurrentUserInfo = Depends(get_current_user),
@@ -80,3 +80,15 @@ async def handler_get_me_detail(
             },
         },
     }
+
+
+@user_router.get("/allUsers")
+async def handler_get_all_users(
+        curr_user: CurrentUserInfo = Depends(get_current_user),
+):
+    if curr_user["entity_type"] != UserEntity.admin.value:
+        return {"error":"Not Authorized","status_code":401}
+    response, status_code = await get_all_users()
+    if status_code == 0:
+        return {"status_code": status_code, "data": response}
+    return {"status_code": status_code, "error": response}

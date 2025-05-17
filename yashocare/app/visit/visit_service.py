@@ -125,7 +125,8 @@ async def get_visits(curr_user):
                 "checkIn": i.checkIn.at,
                 "checkOut": i.checkOut.at,
                 "visit_id": i.visit_id,
-                "assigned_pract":visited_pract.name
+                "assigned_pract":visited_pract.name,
+                "status":i.status
             }
             visitsArray.append(obj)
 
