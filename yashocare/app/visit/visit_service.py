@@ -42,7 +42,7 @@ async def assign(admin_id:str,client_id:str,pract_id:str, date:datetime):
     if not client or not pract:
         return {"message":"Incorrect Credentials"},401
 
-    visit = Visit(assigned_admin_id=admin_id,client_id=client_id,assigned_pract_id=pract_id,status=status,visit_id=visit_id, for_date=date.date())
+    visit = Visit(assigned_admin_id=admin_id,assigned_client_id=client_id,assigned_pract_id=pract_id,status=status,visit_id=visit_id, for_date=date.date())
     await visit.save()
     return "visit initiated", 0
 
