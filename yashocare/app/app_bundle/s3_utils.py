@@ -15,12 +15,12 @@ def generate_pre_signed_urls(
 ):
     s3_client = boto3.client(
         "s3",
-        aws_access_key_id=get_settings().config_s3_bucket,
-        aws_secret_access_key=get_settings().aws_temp_ac_key,
+        aws_access_key_id=get_settings().aws_temp_ac_key,
+        aws_secret_access_key=get_settings().aws_temp_sc_key,
         config=Config(signature_version="s3v4"),
         region_name="ap-south-1",
     )
-    get_url, put_url = None, None
+    get_url, put_url = "", ""
     try:
         if type_of_req == "get" or type_of_req == "both":
             get_url = s3_client.generate_presigned_url(
@@ -39,7 +39,7 @@ def generate_pre_signed_urls(
     return get_url, put_url
 
 
-def upload_to_s3(file_content, object_name: str, bucket_name: str):
+def upload_to_s3(file_content, object_name: str, bucket_name: str,extension:str):
     s3_client = boto3.client(
         "s3",
         aws_access_key_id=get_settings().aws_temp_ac_key,
@@ -52,7 +52,7 @@ def upload_to_s3(file_content, object_name: str, bucket_name: str):
             Bucket=bucket_name,
             Key=object_name,
             Body=file_content,
-            ContentType="image/*",
+            ContentType=f"image/{extension}",
         )
         return object_name
     except (NoCredentialsError, PartialCredentialsError):

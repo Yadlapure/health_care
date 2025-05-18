@@ -4,9 +4,6 @@ from uuid import uuid4
 import pytz
 from fastapi import UploadFile, File
 
-from app.app_bundle.auth.authorized_req_user import CurrentUserInfo
-# import boto3
-
 from app.app_bundle.env_config_settings import get_settings
 from app.app_bundle.s3_utils import generate_pre_signed_urls, upload_to_s3
 from app.user.user_enum import UserEntity
@@ -54,14 +51,16 @@ async def check_in_out(
         img:UploadFile = File(...)
 ):
     date = datetime.now(tz=pytz.UTC)
-    visit = await get_daily_visit(user_id = pract_id, entity = "pract",date = date.date())
-    if not visit:
-        return "No visit assigned today",0
     extension = img.filename.split(".")[-1]
     name = str(uuid4().int)[:10]
     imgname = name+"."+extension
+    visit = await Visit.find_one({"assigned_pract_id":pract_id,"status":VisitStatus.initiated.value,"for_date":date.date()})
+    if not visit:
+        visit = await Visit.find_one({"assigned_pract_id":pract_id,"status":VisitStatus.checkedIn.value})
+        if not visit:
+            return "No visit assigned today",0
     if visit.status.value == VisitStatus.initiated.value:
-        check_in_object_name = upload_to_s3(img.file,f"checkin/{imgname}",get_settings().config_s3_bucket)
+        check_in_object_name = upload_to_s3(img.file,f"checkin/{imgname}",get_settings().config_s3_bucket,extension)
         if not check_in_object_name:
             return "Error while uploading",403
         visit.checkIn.at = date
@@ -73,7 +72,7 @@ async def check_in_out(
     elif visit.status.value == VisitStatus.checkedIn.value :
         if not visit.vitals.notes:
             return "Provide vitals before checkout",0
-        check_out_object_name = upload_to_s3(img.file,f"checkout/{imgname}",get_settings().config_s3_bucket)
+        check_out_object_name = upload_to_s3(img.file,f"checkout/{imgname}",get_settings().config_s3_bucket,extension)
         if not check_out_object_name:
             return "Error while uploading",403
         visit.checkOut.at = date
@@ -89,8 +88,7 @@ async def check_in_out(
 
 
 async def update_vitals(pract_id,bloodPressure,sugar,notes,prescription_images):
-    date = datetime.now(tz=pytz.UTC)
-    visit = await get_daily_visit(user_id = pract_id, entity = "pract",date = date.date())
+    visit = await Visit.find_one({"assigned_pract_id":pract_id,"status":VisitStatus.checkedIn.value})
     if not visit or visit.status.value != VisitStatus.checkedIn.value:
         return "No visit assigned today",0
     if not notes:
@@ -100,7 +98,7 @@ async def update_vitals(pract_id,bloodPressure,sugar,notes,prescription_images):
             extension = img.filename.split(".")[-1]
             name = str(uuid4().int)[:10]
             imgname = name+"."+extension
-            vitals_object_name = upload_to_s3(img.file,f"vitals/{imgname}",get_settings().config_s3_bucket)
+            vitals_object_name = upload_to_s3(img.file,f"vitals/{imgname}",get_settings().config_s3_bucket,extension)
             if not vitals_object_name:
                 return "Error while uploading",403
             visit.vitals.prescription_images.append(vitals_object_name)
@@ -131,3 +129,14 @@ async def get_visits(curr_user):
             visitsArray.append(obj)
 
         return visitsArray,0
+
+
+async def get_image_urls(object_names):
+    response = []
+    for object_name in object_names:
+        get_url, put_url = generate_pre_signed_urls(get_settings().config_s3_bucket,object_name,"get")
+        obj ={
+            object_name:get_url
+        }
+        response.append(obj)
+    return response,0

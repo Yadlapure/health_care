@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from app.app_bundle.auth.authorized_req_user import CurrentUserInfo, get_current_user
 from app.user.user_enum import UserEntity
 # from app.user.user_service import generate_user_login, get_user, create_user, change_sub_merchant_password
-from app.visit.visit_service import assign,check_in_out, update_vitals, get_visits
+from app.visit.visit_service import assign,check_in_out, update_vitals, get_visits, get_image_urls
 
 visit_router = APIRouter()
 
@@ -67,6 +67,19 @@ async def handler_get_visits(
     if curr_user["entity_type"] == UserEntity.pract.value:
         return {"error":"Not Authorized","status_code":401}
     response, status_code = await get_visits(curr_user)
+    if status_code == 0:
+        return {"status_code": status_code, "data": response}
+    return {"status_code": status_code, "error": response}
+
+
+@visit_router.get("/get-image-url")
+async def handler_get_presigned_urls(
+        object_names:List[str],
+        curr_user: CurrentUserInfo = Depends(get_current_user)
+):
+    if curr_user["entity_type"] == UserEntity.pract.value:
+        return {"error":"Not Authorized","status_code":401}
+    response, status_code = await get_image_urls(object_names)
     if status_code == 0:
         return {"status_code": status_code, "data": response}
     return {"status_code": status_code, "error": response}
