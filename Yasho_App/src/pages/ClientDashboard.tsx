@@ -82,21 +82,21 @@ const ClientDashboard = ({ user, setIsAuthenticated, setUser }) => {
         setIsAuthenticated={setIsAuthenticated}
         setUser={setUser}
         title="Yashocare"
-        rightContent={
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => (window.location.href = "/profile")}
-          >
-            <FaUserMd className="h-5 w-5" />
-          </Button>
-        }
+        // rightContent={
+        //   <Button
+        //     variant="ghost"
+        //     size="icon"
+        //     onClick={() => (window.location.href = "/profile")}
+        //   >
+        //     <FaUserMd className="h-5 w-5" />
+        //   </Button>
+        // }
       />
 
       <div className="p-4 max-w-md mx-auto">
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle className="text-xl">Welcome, {user?.name}</CardTitle>
+            <CardTitle className="text-xl">Welcome, {user?.data?.profile?.name}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-500">

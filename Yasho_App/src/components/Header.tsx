@@ -2,6 +2,7 @@ import React from "react";
 import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaSignOutAlt } from "react-icons/fa";
+import { toast } from "react-toastify";
 
 interface HeaderProps {
   title: string;
@@ -20,6 +21,7 @@ const Header: React.FC<HeaderProps> = ({
 
   const handleLogout = () => {
     localStorage.removeItem("yasho");
+    toast.success("Logged out successfully")
     setIsAuthenticated(false);
     setUser(null);
     navigate("/login", { replace: true });

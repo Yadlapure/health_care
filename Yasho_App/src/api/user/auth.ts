@@ -27,14 +27,8 @@ const login = async (mobile:any, password:any) => {
 };
 
 const getMe = async () => {
-    const token = localStorage.getItem("yasho");
-    if (!token) return null;
   try {
-    const response = await apiClient.get(`${PreApi.me}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await apiClient.get(`${PreApi.me}`);
     return response.data;
   } catch (error) {
     console.error("Error fetching login:", error);
@@ -53,7 +47,6 @@ const register = async (name:any,email:any,mobile: any, password: any) => {
         },
       }
     );
-    localStorage.setItem("yasho", response.data.data.token);
     return response.data;
   } catch (error) {
     console.error("Error fetching login:", error);

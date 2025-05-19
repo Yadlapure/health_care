@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent } from "./ui/card";
 
 import {
@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "./ui/dialog";
+import visits from "../api/visits/visits";
 
 interface VisitCardProps {
   visit: any;
@@ -21,6 +22,24 @@ interface VisitCardProps {
 
 const VisitCard: React.FC<VisitCardProps> = ({ visit, practitionerName }) => {
   const [showDetails, setShowDetails] = useState(false);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchImageUrls = async () => {
+      if (showDetails && visit.vitals?.prescription_images?.length > 0) {
+        const result = await visits.getImageURL(
+          visit.vitals.prescription_images,
+        );
+
+        if (result?.data) {
+          const urls = result.data.map((obj: any) => Object.values(obj)[0]);
+          setImageUrls(urls);
+        }
+      }
+    };
+ 
+    fetchImageUrls();
+  }, [showDetails, visit.vitals?.prescription_images]);
 
 const formatDate = (dateString?: string) => {
   if (!dateString) return "Not recorded";
@@ -143,24 +162,23 @@ const formatDate = (dateString?: string) => {
               </div>
             )}
 
-            {visit.vitals.prescription_images && (
+            {imageUrls.length > 0 && (
               <div>
                 <h3 className="text-sm font-medium text-gray-500 flex items-center">
                   <FaPrescriptionBottleAlt className="mr-1" /> Prescription
                 </h3>
-                <p className="text-sm whitespace-pre-line">
-                  {visit.prescription}
-                </p>
-
-                {visit.prescription_images && (
-                  <div className="mt-2">
+                <div className="grid grid-cols-3 gap-2 mt-2">
+                  {imageUrls.map((url, index) => (
                     <img
-                      src={visit.prescriptionImage}
-                      alt="Prescription"
+                      key={index}
+                      src={url}
+                      alt={`Prescription ${index + 1}`}
                       className="border rounded max-h-40 object-contain"
+                      width={150}
+                      height={150}
                     />
-                  </div>
-                )}
+                  ))}
+                </div>
               </div>
             )}
           </div>

@@ -6,7 +6,7 @@ import { ToastContainer } from "react-toastify";
 createRoot(document.getElementById("root")!).render(
   <>
     <ToastContainer
-      position="bottom-center"
+      position="top-center"
       autoClose={5000}
       hideProgressBar={false}
       newestOnTop
