@@ -112,10 +112,12 @@ async def get_visits(curr_user):
     if curr_user["entity_type"] == UserEntity.admin.value:
         visits =await Visit.find({"assigned_admin_id":curr_user["user_id"]}).to_list()
         return visits,0
+
+
+    visitsArray = []
     if curr_user["entity_type"] == UserEntity.client.value:
         visits = await Visit.find({"assigned_client_id":curr_user["user_id"]}).to_list()
 
-        visitsArray = []
         for i in visits:
             visited_pract = await get_user(i.assigned_pract_id)
             obj = {
@@ -128,7 +130,20 @@ async def get_visits(curr_user):
             }
             visitsArray.append(obj)
 
-        return visitsArray,0
+    if curr_user["entity_type"] == UserEntity.pract.value:
+        visits = await Visit.find({"assigned_pract_id":curr_user["user_id"],"for_date":datetime.now(tz=pytz.UTC).date()}).to_list()
+        for i in visits:
+            assigned_client = await get_user(i.assigned_client_id)
+            if i.status.value == "INITIATED":
+                obj = {
+                    "visit_id": i.visit_id,
+                    "assigned_client":assigned_client.name,
+                    "status":i.status,
+                    "for_date":i.for_date
+                }
+                visitsArray.append(obj)
+
+    return visitsArray,0
 
 
 async def get_image_urls(object_names):
