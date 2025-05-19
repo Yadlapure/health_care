@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute.tsx";
 import Login from "./pages/Login.tsx";
-import PatientDetail from "./pages/PatientDetail.tsx";
+import PractitionerDetail from "./pages/PractitionerDetail.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import AdminDashboard from "./pages/AdminDashboard.tsx";
 import ClientDashboard from "./pages/ClientDashboard.tsx";
@@ -94,7 +94,10 @@ const App = () => {
                 loading={loading}
                 allowedRoles={["practitioner"]}
               >
-                <PatientDetail />
+                <PractitionerDetail
+                  setIsAuthenticated={setIsAuthenticated}
+                  setUser={setUser}
+                />
               </ProtectedRoute>
             }
           />

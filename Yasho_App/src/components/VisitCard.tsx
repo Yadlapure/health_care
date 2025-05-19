@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from "./ui/dialog";
 import visits from "../api/visits/visits";
+import { formatDate } from "../utils/formatDate";
 
 interface VisitCardProps {
   visit: any;
@@ -40,20 +41,6 @@ const VisitCard: React.FC<VisitCardProps> = ({ visit, practitionerName }) => {
  
     fetchImageUrls();
   }, [showDetails, visit.vitals?.prescription_images]);
-
-const formatDate = (dateString?: string) => {
-  if (!dateString) return "Not recorded";
-  const date = new Date(dateString);
-  return date.toLocaleString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
-  });
-};
   
   const getStatusColor = () => {
     switch (visit.status) {

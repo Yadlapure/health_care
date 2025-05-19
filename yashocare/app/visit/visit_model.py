@@ -23,6 +23,7 @@ class VisitStatus(enum.Enum):
     initiated="INITIATED"
     checkedIn="CHECKEDIN"
     checkedOut="CHECKEDOUT"
+    vitalUpdate="VITALUPDATE"
 
 class CheckInOut(BaseModel):
     at:Optional[datetime]=None

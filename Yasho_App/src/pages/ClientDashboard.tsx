@@ -82,15 +82,7 @@ const ClientDashboard = ({ user, setIsAuthenticated, setUser }) => {
         setIsAuthenticated={setIsAuthenticated}
         setUser={setUser}
         title="Yashocare"
-        // rightContent={
-        //   <Button
-        //     variant="ghost"
-        //     size="icon"
-        //     onClick={() => (window.location.href = "/profile")}
-        //   >
-        //     <FaUserMd className="h-5 w-5" />
-        //   </Button>
-        // }
+        rightContent={true}
       />
 
       <div className="p-4 max-w-md mx-auto">

@@ -7,13 +7,13 @@ import { toast } from "react-toastify";
 interface HeaderProps {
   title: string;
   showBack?: boolean;
-  rightContent?: React.ReactNode;
+  rightContent?: boolean;
 }
 
 const Header: React.FC<HeaderProps> = ({
   title,
   showBack = false,
-  rightContent,
+  rightContent = false,
   setIsAuthenticated,
   setUser,
 }) => {
@@ -35,7 +35,7 @@ const Header: React.FC<HeaderProps> = ({
             variant="ghost"
             size="icon"
             className="mr-2"
-            onClick={() => navigate(-1)}
+            onClick={() => navigate("/")}
           >
             <FaArrowLeft className="h-5 w-5" />
           </Button>
@@ -43,15 +43,16 @@ const Header: React.FC<HeaderProps> = ({
         <h1 className="text-xl font-medium text-healthcare-primary">{title}</h1>
       </div>
       <div className="flex items-center gap-2">
-        {rightContent && rightContent}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleLogout}
-          title="Logout"
-        >
-          <FaSignOutAlt className="h-5 w-5" />
-        </Button>
+        {rightContent &&  (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleLogout}
+            title="Logout"
+          >
+            <FaSignOutAlt className="h-5 w-5" />
+          </Button>
+        )}
       </div>
     </div>
   );

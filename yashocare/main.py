@@ -22,13 +22,10 @@ async def shutdown_event():
 
 @app.middleware("http")
 async def add_cors_headers(request: Request, call_next):
-    # Handle preflight OPTIONS request directly
     if request.method == "OPTIONS":
         response = Response()
     else:
         response = await call_next(request)
-
-    # Add necessary CORS headers
     response.headers["Access-Control-Allow-Origin"] = "http://localhost:5173"
     response.headers["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS, PUT, DELETE"
     response.headers["Access-Control-Allow-Headers"] = "Authorization, Content-Type"

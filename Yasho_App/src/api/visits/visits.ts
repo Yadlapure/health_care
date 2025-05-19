@@ -3,6 +3,8 @@ import apiClient from "../apiClient";
 const PreApi = {
   getVisits: "/api/v1/visit/get-visits",
   getImage: "/api/v1/visit/get-image-url",
+  updateVitals: "/api/v1/visit/update-vitals",
+  updateCheckInOut: "/api/v1/visit/checkInOut",
 };
 
 
@@ -26,8 +28,34 @@ const getImageURL = async (visits) => {
   }
 };
 
+const updateVitals = async (vitals) => {
+  try {
+    const response = await apiClient.post(`${PreApi.updateVitals}`, vitals, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching image URLs:", error);
+    return null;
+  }
+};
+
+const updatecheckInOut = async (formData) => {
+  try {
+    const response = await apiClient.post(`${PreApi.updateCheckInOut}`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching image URLs:", error);
+    return null;
+  }
+};
+
 
 export default {
   getVisits,
   getImageURL,
+  updateVitals,
+  updatecheckInOut,
 };

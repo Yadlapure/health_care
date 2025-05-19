@@ -50,11 +50,9 @@ async def check_in_out(
     extension = img.filename.split(".")[-1]
     name = str(uuid4().int)[:10]
     imgname = name+"."+extension
-    visit = await Visit.find_one({"assigned_pract_id":pract_id,"status":VisitStatus.initiated.value,"for_date":date.date()})
+    visit = await Visit.find_one({"assigned_pract_id":pract_id,"status": {"$in": ["INITIATED", "CHECKEDIN", "VITALUPDATE"]},"for_date":date.date()})
     if not visit:
-        visit = await Visit.find_one({"assigned_pract_id":pract_id,"status":VisitStatus.checkedIn.value})
-        if not visit:
-            return "No visit assigned today",0
+        return "No visit assigned today",0
     if visit.status.value == VisitStatus.initiated.value:
         check_in_object_name = upload_to_s3(img.file,f"checkin/{imgname}",get_settings().config_s3_bucket,extension)
         if not check_in_object_name:
@@ -65,7 +63,7 @@ async def check_in_out(
         visit.checkIn.img = check_in_object_name
         visit.status = VisitStatus.checkedIn
         await visit.save()
-    elif visit.status.value == VisitStatus.checkedIn.value :
+    elif visit.status.value == VisitStatus.vitalUpdate.value :
         if not visit.vitals.notes:
             return "Provide vitals before checkout",0
         check_out_object_name = upload_to_s3(img.file,f"checkout/{imgname}",get_settings().config_s3_bucket,extension)
@@ -79,8 +77,17 @@ async def check_in_out(
         await visit.save()
     else:
         return "No visit assigned today",0
+    assigned_client = await get_user(visit.assigned_client_id)
 
-    return "Data added successfully",0
+    obj = {
+        "visit_id": visit.visit_id,
+        "assigned_client":assigned_client.name,
+        "checkIn": visit.checkIn.at,
+        "checkOut": visit.checkOut.at,
+        "status":visit.status,
+        "for_date":visit.for_date
+    }
+    return obj,0
 
 
 async def update_vitals(pract_id,bloodPressure,sugar,notes,prescription_images):
@@ -101,6 +108,7 @@ async def update_vitals(pract_id,bloodPressure,sugar,notes,prescription_images):
     visit.vitals.notes=notes
     visit.vitals.sugar=sugar
     visit.vitals.bloodPressure=bloodPressure
+    visit.status = VisitStatus.vitalUpdate
     await visit.save()
     return "Vitals Updated Successfully", 0
 
@@ -108,7 +116,6 @@ async def get_visits(curr_user):
     if curr_user["entity_type"] == UserEntity.admin.value:
         visits =await Visit.find({"assigned_admin_id":curr_user["user_id"]}).to_list()
         return visits,0
-
 
     visitsArray = []
     if curr_user["entity_type"] == UserEntity.client.value:
@@ -132,6 +139,11 @@ async def get_visits(curr_user):
             assigned_client = await get_user(i.assigned_client_id)
             obj = {
                 "visit_id": i.visit_id,
+<<<<<<< Updated upstream
+=======
+                "checkIn": i.checkIn.at,
+                "checkOut": i.checkOut.at,
+>>>>>>> Stashed changes
                 "assigned_client":assigned_client.name,
                 "status":i.status,
                 "for_date":i.for_date
