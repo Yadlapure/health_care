@@ -25,10 +25,6 @@ from app.visit.visit_model import Visit, VisitStatus
 
 # print(f"Created bucket {bucket_name}")
 
-async def get_daily_visit(user_id:str,entity:str,date:datetime.date):
-    assigned_user = f"assigned_{entity}_id"
-    return await Visit.find_one({assigned_user:user_id,"for_date":date})
-
 
 async def assign(admin_id:str,client_id:str,pract_id:str, date:datetime):
     status = VisitStatus.initiated
@@ -131,17 +127,16 @@ async def get_visits(curr_user):
             visitsArray.append(obj)
 
     if curr_user["entity_type"] == UserEntity.pract.value:
-        visits = await Visit.find({"assigned_pract_id":curr_user["user_id"],"for_date":datetime.now(tz=pytz.UTC).date()}).to_list()
+        visits = await Visit.find({"assigned_pract_id":curr_user["user_id"],"status":VisitStatus.initiated.value,"for_date":datetime.now(tz=pytz.UTC).date()}).to_list()
         for i in visits:
             assigned_client = await get_user(i.assigned_client_id)
-            if i.status.value == "INITIATED":
-                obj = {
-                    "visit_id": i.visit_id,
-                    "assigned_client":assigned_client.name,
-                    "status":i.status,
-                    "for_date":i.for_date
-                }
-                visitsArray.append(obj)
+            obj = {
+                "visit_id": i.visit_id,
+                "assigned_client":assigned_client.name,
+                "status":i.status,
+                "for_date":i.for_date
+            }
+            visitsArray.append(obj)
 
     return visitsArray,0
 
