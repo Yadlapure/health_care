@@ -32,6 +32,7 @@ class Yasho_User(MongoDocument):
 
     class Settings:
         name = f"{get_settings().service_name}_{get_settings().environment}_user"
+        projection = {"_id": 0,"password":0}
 
     def check_password(self, password):
         return bcrypt.checkpw(password.encode("utf-8"), self.password.encode())
