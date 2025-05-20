@@ -116,14 +116,14 @@ async def get_visits(curr_user):
     if curr_user["entity_type"] == UserEntity.admin.value:
         visits =await Visit.find({"assigned_admin_id":curr_user["user_id"]}).to_list()
         if not visits:
-            return "No visits available",0
+            return "No visits available",403
         return visits,0
 
     visitsArray = []
     if curr_user["entity_type"] == UserEntity.client.value:
         visits = await Visit.find({"assigned_client_id":curr_user["user_id"]}).to_list()
         if not visits:
-            return "No visits available",0
+            return "No visits available",403
         for i in visits:
             visited_pract = await get_user(i.assigned_pract_id)
             obj = {
@@ -139,7 +139,7 @@ async def get_visits(curr_user):
     if curr_user["entity_type"] == UserEntity.pract.value:
         visits = await Visit.find({"assigned_pract_id":curr_user["user_id"],"status":VisitStatus.initiated.value,"for_date":datetime.now(tz=pytz.UTC).date()}).to_list()
         if not visits:
-            return "No visits assigned",0
+            return "No visits assigned",403
         for i in visits:
             assigned_client = await get_user(i.assigned_client_id)
             obj = {
