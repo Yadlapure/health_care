@@ -139,11 +139,8 @@ async def get_visits(curr_user):
             assigned_client = await get_user(i.assigned_client_id)
             obj = {
                 "visit_id": i.visit_id,
-<<<<<<< Updated upstream
-=======
                 "checkIn": i.checkIn.at,
                 "checkOut": i.checkOut.at,
->>>>>>> Stashed changes
                 "assigned_client":assigned_client.name,
                 "status":i.status,
                 "for_date":i.for_date
