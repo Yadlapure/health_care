@@ -37,6 +37,10 @@ async def assign(admin_id:str,client_id:str,pract_id:str, date:datetime):
 
     visit = Visit(assigned_admin_id=admin_id,assigned_client_id=client_id,assigned_pract_id=pract_id,status=status,visit_id=visit_id, for_date=date.date())
     await visit.save()
+    client.assigned=True
+    pract.assigned=True
+    await client.save()
+    await pract.save()
     return "visit initiated", 0
 
 
