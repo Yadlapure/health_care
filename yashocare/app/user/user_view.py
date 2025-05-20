@@ -29,7 +29,7 @@ class UserOut(Yasho_User):
 class AllUserResponse(BaseModel):
     data:Optional[List[UserOut]]=[]
     status_code:int
-    error:Optional[str]
+    error:Optional[str]=""
 
 @user_router.post("/register",response_model=AllUserResponse)
 async def handler_user_register(create_req:Register):
