@@ -81,3 +81,9 @@ async def handler_get_presigned_urls(
     if status_code == 0:
         return {"status_code": status_code, "data": response}
     return {"status_code": status_code, "error": response}
+
+@visit_router.post("/unassign")
+async def handler_unassign(
+        curr_user: CurrentUserInfo = Depends(get_current_user),
+):
+    pass

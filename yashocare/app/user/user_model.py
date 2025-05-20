@@ -28,7 +28,7 @@ class Yasho_User(MongoDocument):
     entity_type:Optional[UserEntity]=UserEntity.client
     photo:Optional[str]=None
     user_id:str
-    assigned:Optional[bool]=None
+    assigned:Optional[bool]=False
     # locations:Location
 
     class Settings:

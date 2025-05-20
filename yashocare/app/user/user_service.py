@@ -1,5 +1,6 @@
 from uuid import uuid4
 
+from app.user.user_enum import UserEntity
 from app.user.user_model import Yasho_User, hash_password
 
 
@@ -39,5 +40,20 @@ async def get_all_users():
     return users,0
 
 
-async def update_role(user_id):
- pass
+async def update_role(user_id, entity):
+    user = await  get_user(user_id)
+    if not user:
+        return "User not found",404
+    if entity in UserEntity:
+        user.entity_type = entity
+        if entity == UserEntity.client.value:
+            changed_id = user_id.split("C")
+            final_id = "P"+changed_id[1]
+            user.user_id=final_id
+        if entity == UserEntity.pract.value:
+            changed_id = user_id.split("P")
+            final_id = "C"+changed_id[1]
+            user.user_id=final_id
+        await user.save()
+        return "Role updated successfully",0
+    return "Entity type doesn't exist",404

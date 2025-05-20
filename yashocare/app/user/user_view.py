@@ -31,6 +31,10 @@ class AllUserResponse(BaseModel):
     status_code:int
     error:Optional[str]=""
 
+class RoleUpdate(BaseModel):
+    user_id:str
+    entity:str
+
 @user_router.post("/register",response_model=AllUserResponse)
 async def handler_user_register(create_req:Register):
     response,status_code = await create_user(
@@ -111,11 +115,12 @@ async def handler_get_all_users(
 
 @user_router.get("/role-update")
 async def handler_update_role(
+        role_update_req:RoleUpdate,
         curr_user: CurrentUserInfo = Depends(get_current_user),
 ):
     if curr_user["entity_type"] != UserEntity.admin.value:
         return {"error":"Not Authorized","status_code":401}
-    response, status_code = await update_role()
+    response, status_code = await update_role(role_update_req.user_id,role_update_req.entity)
     if status_code == 0:
         return {"status_code": status_code, "data": response}
     return {"status_code": status_code, "error": response}
