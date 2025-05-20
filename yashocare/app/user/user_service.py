@@ -12,7 +12,7 @@ async def create_user(
     if not name or not email or not mobile or not password:
         return "Please provide all required fields",401
     user = await Yasho_User.find_one({"mobile": mobile})
-    if user:
+    if not user:
         return "User already exists. Please login", 401
     user_id = "C"+str(uuid4().int)[:6]
     password = hash_password(password).decode("utf-8")
