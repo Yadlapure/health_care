@@ -48,9 +48,8 @@ const PractitionerDetail = ({ setIsAuthenticated, setUser }) => {
         setLoading(true);
 
         const visitData = await visits.getVisits();
-        if (!visitData || !visitData.data.length) {
-          toast.error("Visit not found");
-          navigate("/");
+        if (visitData.status_code !== 0) {
+          toast.error(visitData.error);
           return;
         }
 
@@ -84,7 +83,7 @@ const PractitionerDetail = ({ setIsAuthenticated, setUser }) => {
         setActiveTab(firstVisit.status);
       } catch (error) {
         console.error("Error loading visit:", error);
-        toast.error("Failed to load visit data");
+        toast.error(error);
       } finally {
         setLoading(false);
       }
@@ -114,7 +113,6 @@ const PractitionerDetail = ({ setIsAuthenticated, setUser }) => {
         inSelfie: imageData,
       };
 
-      // await StorageService.saveVisit(updatedVisit);
       setVisit(updatedVisit);
       setInLocationCaptured(true);
       setInSelfieCaptured(true);
@@ -246,10 +244,15 @@ const PractitionerDetail = ({ setIsAuthenticated, setUser }) => {
   if (!visit) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
-        <Header title="Visit Not Found" showBack={false} />
+        <Header
+          title="Your Dashboard"
+          showBack={false}
+          rightContent={true}
+          setIsAuthenticated={setIsAuthenticated}
+          setUser={setUser}
+        />
         <div className="p-4 text-center">
           <p className="mb-4">The requested visit could not be found.</p>
-          <Button onClick={() => navigate("/")}>Return to Home</Button>
         </div>
       </div>
     );

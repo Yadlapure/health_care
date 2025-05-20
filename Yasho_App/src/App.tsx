@@ -8,6 +8,7 @@ import ClientDashboard from "./pages/ClientDashboard.tsx";
 import {  useEffect, useState } from "react";
 import Register from "./pages/Register.tsx";
 import auth from "./api/user/auth.ts";
+import { toast } from "react-toastify";
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!localStorage.getItem("yasho"));
@@ -17,11 +18,15 @@ const App = () => {
   useEffect(() => {
     const initializeUser = async () => {
       const token = localStorage.getItem("yasho");
+      setLoading(false);
       if (!token) return;
 
-      setLoading(true);
       try {
         const userData = await auth.getMe();
+        if (userData.status_code !== 0) {
+          toast.error(userData.error);
+          return;
+        }
         if (userData?.data?.profile?.entity_type) {
           setUser(userData);
           setIsAuthenticated(true);
@@ -109,7 +114,11 @@ const App = () => {
                 loading={loading}
                 allowedRoles={["admin"]}
               >
-                <AdminDashboard />
+                <AdminDashboard
+                  user={user}
+                  setIsAuthenticated={setIsAuthenticated}
+                  setUser={setUser}
+                />
               </ProtectedRoute>
             }
           />

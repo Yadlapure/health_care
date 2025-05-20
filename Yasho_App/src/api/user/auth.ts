@@ -3,8 +3,9 @@ import apiClient from "../apiClient";
 
 const PreApi = {
   login: "/api/v1/user/login",
-  me:"/api/v1/user/me",
-  register:"/api/v1/user/register"
+  me: "/api/v1/user/me",
+  register: "/api/v1/user/register",
+  getAllUsers:"/api/v1/user/allUsers"
 };
 
 const login = async (mobile:any, password:any) => {
@@ -18,7 +19,9 @@ const login = async (mobile:any, password:any) => {
         },
       }
     );
-    localStorage.setItem("yasho",response.data.data.token)
+    if(response && response.data.status_code === 0){
+      localStorage.setItem("yasho", response && response.data.data.token);
+    }
     return response.data;
   } catch (error) {
     console.error("Error fetching login:", error);
@@ -54,9 +57,20 @@ const register = async (name:any,email:any,mobile: any, password: any) => {
   }
 };
 
+const getAllUsers = async () => {
+  try {
+    const response = await apiClient.get(`${PreApi.getAllUsers}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching login:", error);
+    return null;
+  }
+};
+
 export default {
   login,
   getMe,
   register,
+  getAllUsers,
 };
   

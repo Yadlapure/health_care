@@ -19,6 +19,10 @@ const Login = ({ setIsAuthenticated, loading, setLoading, setUser }) => {
 
     try {
       const response = await auth.login(mobile, password);
+      if (response && response.status_code !== 0) {
+        toast.error(response.error);
+        return;
+      }
       if (response?.status_code === 0 && response.data.token) {
         const userResponse = await auth.getMe();        
         if (userResponse?.data?.profile?.entity_type) {
@@ -43,11 +47,11 @@ const Login = ({ setIsAuthenticated, loading, setLoading, setUser }) => {
           toast.error("Failed to get user info");
         }
       } else {
-        toast.error("Invalid mobile or password");
+        toast.error(response.data.error.message);
       }
     } catch (err) {
-      console.error(err);
-      toast.error("Login failed");
+      console.error("err", err);
+      toast.error(err);
     } finally {
       setLoading(false);
     }
