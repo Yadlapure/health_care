@@ -14,7 +14,7 @@ class MongoDocument(Document):
     updated_at: datetime.datetime = Field(
         default_factory=lambda: datetime.datetime.now(tz=pytz.UTC)
     )
-    is_active: bool = True
+    is_deleted: bool = True
 
     async def save(self, *args, **kwargs):
         current_datetime = datetime.datetime.now(tz=pytz.UTC)
@@ -27,7 +27,7 @@ class MongoDocument(Document):
         current_datetime = datetime.datetime.now(tz=pytz.UTC)
         if not self.created_at:
             self.created_at = current_datetime
-        self.is_active = False
+        self.is_deleted = False
         self.updated_at = current_datetime
         return await super(MongoDocument, self).save(*args, **kwargs)
 

@@ -1,9 +1,12 @@
+from typing import List
+
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, SecretStr, Field
 
 from app.app_bundle.auth.authorized_req_user import CurrentUserInfo, get_current_user
 from app.user.user_enum import UserEntity
-from app.user.user_service import generate_user_login, get_user, create_user, change_sub_merchant_password, get_all_users
+from app.user.user_model import Yasho_User
+from app.user.user_service import generate_user_login, get_user, create_user, change_sub_merchant_password, get_all_users, update_role
 
 user_router = APIRouter()
 
@@ -17,6 +20,15 @@ class Register(BaseModel):
     password: str
     name:str
     email:str
+
+class UserOut(Yasho_User):
+    password: SecretStr = Field(..., exclude=True)
+    id: SecretStr = Field(..., exclude=True)
+
+
+class AllUserResponse(BaseModel):
+    data:List[UserOut]
+    status_code:int
 
 @user_router.post("/register")
 async def handler_user_register(create_req:Register):
@@ -68,6 +80,8 @@ async def handler_get_me_detail(
 ):
     user_id = curr_user["user_id"]
     user = await get_user(user_id=user_id)
+    if not user:
+        return {"status_code":404,"data":"Invalid user"}
     return {
         "status_code": 0,
         "data": {
@@ -82,13 +96,25 @@ async def handler_get_me_detail(
     }
 
 
-@user_router.get("/allUsers")
+@user_router.get("/allUsers",response_model=AllUserResponse)
 async def handler_get_all_users(
         curr_user: CurrentUserInfo = Depends(get_current_user),
 ):
     if curr_user["entity_type"] != UserEntity.admin.value:
         return {"error":"Not Authorized","status_code":401}
     response, status_code = await get_all_users()
+    if status_code == 0:
+        return {"status_code": status_code, "data": response}
+    return {"status_code": status_code, "error": response}
+
+
+@user_router.get("/role-update")
+async def handler_update_role(
+        curr_user: CurrentUserInfo = Depends(get_current_user),
+):
+    if curr_user["entity_type"] != UserEntity.admin.value:
+        return {"error":"Not Authorized","status_code":401}
+    response, status_code = await update_role()
     if status_code == 0:
         return {"status_code": status_code, "data": response}
     return {"status_code": status_code, "error": response}
