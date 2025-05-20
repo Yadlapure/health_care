@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, SecretStr, Field
@@ -27,10 +27,11 @@ class UserOut(Yasho_User):
 
 
 class AllUserResponse(BaseModel):
-    data:List[UserOut]
+    data:Optional[List[UserOut]]=[]
     status_code:int
+    error:Optional[str]
 
-@user_router.post("/register")
+@user_router.post("/register",response_model=AllUserResponse)
 async def handler_user_register(create_req:Register):
     response,status_code = await create_user(
         name = create_req.name,
@@ -39,7 +40,7 @@ async def handler_user_register(create_req:Register):
         password = create_req.password
     )
     if status_code == 0:
-        return {"status_code": status_code, "data": response, "message":"User created successfully"}
+        return {"status_code": status_code, "data": response}
     return {"status_code": status_code, "error": response}
 
 
