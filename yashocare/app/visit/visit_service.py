@@ -34,9 +34,15 @@ async def assign(admin_id:str,client_id:str,pract_id:str, date:datetime):
     pract = await get_user(pract_id)
     if not client or not pract:
         return {"message":"Incorrect Credentials"},401
-
-    visit = Visit(assigned_admin_id=admin_id,assigned_client_id=client_id,assigned_pract_id=pract_id,status=status,visit_id=visit_id, for_date=date.date())
-    await visit.save()
+    visit = await Visit.find_one({"assigned_client_id":client_id,"for_date":date.date()})
+    if visit:
+        visit.assigned_pract_id = pract_id
+        visit.status = VisitStatus.initiated
+        visit.assigned_admin_id = admin_id
+        await visit.save()
+    else :
+        visit = Visit(assigned_admin_id=admin_id,assigned_client_id=client_id,assigned_pract_id=pract_id,status=status,visit_id=visit_id, for_date=date.date())
+        await visit.save()
     client.assigned=True
     pract.assigned=True
     await client.save()
@@ -130,7 +136,7 @@ async def update_vitals(pract_id,bloodPressure,sugar,notes,prescription_images):
 
 async def get_visits(curr_user):
     if curr_user["entity_type"] == UserEntity.admin.value:
-        visits =await Visit.find({"assigned_admin_id":curr_user["user_id"]}).to_list()
+        visits =await Visit.find({"assigned_admin_id":curr_user["user_id"],"status": {"$ne": VisitStatus.cancelledVisit.value}}).to_list()
         if not visits:
             return "No visits available",403
         return visits,0

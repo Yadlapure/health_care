@@ -8,7 +8,6 @@ from pydantic import BaseModel, Field
 
 from app.app_bundle.database.base import MongoDocument
 from app.app_bundle.env_config_settings import get_settings
-from app.user.user_enum import UserEntity
 
 IST = pytz.timezone("Asia/Kolkata")
 
