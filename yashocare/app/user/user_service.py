@@ -26,8 +26,10 @@ async def generate_user_login(mobile: str, password: str):
     mobile = str(mobile.replace(" ", "").lower())
     password = str(password.replace(" ", ""))
     user = await Yasho_User.find_one({"mobile":mobile})
-    if not user or not user.check_password(password=password):
+    if not user:
         return "User Not Found, Please Register!!", 404
+    if not user.check_password(password=password):
+        return "Invalid password!!", 403
     return {"token": user.token(entity_type=user.entity_type)}, 0
 
 
