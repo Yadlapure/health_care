@@ -35,6 +35,7 @@ async def change_sub_merchant_password(user_id,new_password):
 
 async def get_all_users():
     users = await Yasho_User.find({"entity_type": {"$in": ["client", "pract"]}}).to_list()
+    users = [user.model_dump(exclude={"password","id"}) for user in users]
     if not users:
         return "No users found",400
     return users,0
@@ -47,12 +48,12 @@ async def update_role(user_id, entity):
     if entity in UserEntity:
         user.entity_type = entity
         if entity == UserEntity.client.value:
-            changed_id = user_id.split("C")
-            final_id = "P"+changed_id[1]
-            user.user_id=final_id
-        if entity == UserEntity.pract.value:
             changed_id = user_id.split("P")
             final_id = "C"+changed_id[1]
+            user.user_id=final_id
+        if entity == UserEntity.pract.value:
+            changed_id = user_id.split("C")
+            final_id = "P"+changed_id[1]
             user.user_id=final_id
         await user.save()
         return "Role updated successfully",0

@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from app.app_bundle.auth.authorized_req_user import CurrentUserInfo, get_current_user
 from app.user.user_enum import UserEntity
 # from app.user.user_service import generate_user_login, get_user, create_user, change_sub_merchant_password
-from app.visit.visit_service import assign,check_in_out, update_vitals, get_visits, get_image_urls
+from app.visit.visit_service import assign,check_in_out, update_vitals, get_visits, get_image_urls, unassign
 
 visit_router = APIRouter()
 
@@ -16,6 +16,9 @@ class Assign(BaseModel):
     clientId:str
     date:datetime
 
+class Unassign(BaseModel):
+    clientId:str
+    date:datetime
 
 @visit_router.post("/assign")
 async def handler_assign(
@@ -84,6 +87,12 @@ async def handler_get_presigned_urls(
 
 @visit_router.post("/unassign")
 async def handler_unassign(
+        unassign_req: Unassign,
         curr_user: CurrentUserInfo = Depends(get_current_user),
 ):
-    pass
+    if curr_user["entity_type"] != UserEntity.admin.value:
+        return {"error":"Not Authorized","status_code":401}
+    response, status_code = await unassign(client_id=unassign_req.clientId,date=unassign_req.date)
+    if status_code == 0:
+        return {"status_code": status_code, "data": response}
+    return {"status_code": status_code, "error": response}

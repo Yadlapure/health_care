@@ -41,7 +41,13 @@ async def assign(admin_id:str,client_id:str,pract_id:str, date:datetime):
     pract.assigned=True
     await client.save()
     await pract.save()
-    return "visit initiated", 0
+    return {
+        "client_id":client.user_id,
+        "client_name":client.name,
+        "pract_id":pract.user_id,
+        "pract_name":pract.name,
+        "for_date":date.date()
+    }, 0
 
 
 async def check_in_out(
@@ -168,3 +174,17 @@ async def get_image_urls(object_names):
         }
         response.append(obj)
     return response,0
+
+async def unassign(client_id:str,date):
+    visit = await Visit.find_one({"assigned_client_id": client_id,"for_date":date})
+    if not visit:
+        return "No visit has been assigned",403
+    visit.status = VisitStatus.cancelledVisit
+    client = await get_user(client_id)
+    pract = await get_user(visit.assigned_pract_id)
+    client.assigned = False
+    pract.assigned = False
+    await visit.save()
+    await client.save()
+    await pract.save()
+    return "Unassigned successfully",0

@@ -5,7 +5,6 @@ from pydantic import BaseModel, SecretStr, Field
 
 from app.app_bundle.auth.authorized_req_user import CurrentUserInfo, get_current_user
 from app.user.user_enum import UserEntity
-from app.user.user_model import Yasho_User
 from app.user.user_service import generate_user_login, get_user, create_user, change_sub_merchant_password, get_all_users, update_role
 
 user_router = APIRouter()
@@ -21,21 +20,11 @@ class Register(BaseModel):
     name:str
     email:str
 
-class UserOut(Yasho_User):
-    password: SecretStr = Field(..., exclude=True)
-    id: SecretStr = Field(..., exclude=True)
-
-
-class AllUserResponse(BaseModel):
-    data:Optional[List[UserOut]]=[]
-    status_code:int
-    error:Optional[str]=""
-
 class RoleUpdate(BaseModel):
     user_id:str
     entity:str
 
-@user_router.post("/register",response_model=AllUserResponse)
+@user_router.post("/register")
 async def handler_user_register(create_req:Register):
     response,status_code = await create_user(
         name = create_req.name,
@@ -101,7 +90,7 @@ async def handler_get_me_detail(
     }
 
 
-@user_router.get("/allUsers",response_model=AllUserResponse)
+@user_router.get("/allUsers")
 async def handler_get_all_users(
         curr_user: CurrentUserInfo = Depends(get_current_user),
 ):
