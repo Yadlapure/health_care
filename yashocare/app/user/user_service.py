@@ -49,12 +49,13 @@ async def update_role(user_id, entity):
     if not user:
         return "User not found",404
     if entity in UserEntity:
-        user.entity_type = entity
         if entity == UserEntity.client.value:
+            user.entity_type = UserEntity.client
             changed_id = user_id.split("P")
             final_id = "C"+changed_id[1]
             user.user_id=final_id
         if entity == UserEntity.pract.value:
+            user.entity_type = UserEntity.pract
             changed_id = user_id.split("C")
             final_id = "P"+changed_id[1]
             user.user_id=final_id
