@@ -102,7 +102,7 @@ async def handler_get_all_users(
     return {"status_code": status_code, "error": response}
 
 
-@user_router.get("/role-update")
+@user_router.put("/role-update")
 async def handler_update_role(
         role_update_req:RoleUpdate,
         curr_user: CurrentUserInfo = Depends(get_current_user),
