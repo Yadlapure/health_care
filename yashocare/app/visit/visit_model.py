@@ -40,7 +40,7 @@ class Visit(MongoDocument):
     checkIn:Optional[CheckInOut]={}
     checkOut:Optional[CheckInOut]={}
     status: VisitStatus = VisitStatus.initiated
-    for_date:datetime.date = Field(default_factory=lambda: datetime.now(tz=pytz.UTC).date())
+    for_date:datetime.date = Field(default_factory=lambda: datetime.now(tz=pytz.UTC).date().isoformat())
     visit_id:str
 
     class Config:

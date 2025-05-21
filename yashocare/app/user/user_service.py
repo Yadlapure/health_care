@@ -1,7 +1,9 @@
+from datetime import datetime
 from uuid import uuid4
 
 from app.user.user_enum import UserEntity
 from app.user.user_model import Yasho_User, hash_password
+from app.visit.visit_model import Visit, VisitStatus
 
 
 async def get_user(user_id:str):
@@ -38,10 +40,25 @@ async def change_sub_merchant_password(user_id,new_password):
 
 async def get_all_users():
     users = await Yasho_User.find({"entity_type": {"$in": ["client", "pract"]}}).to_list()
-    users = [user.model_dump(exclude={"password","id"}) for user in users]
     if not users:
-        return "No users found",400
-    return users,0
+        return "No users found",404
+    result=[]
+    for user in users:
+        user_data = user.model_dump(exclude={"password", "id"})
+        visit = None
+        if user.entity_type.value == UserEntity.client.value:
+            visit = await Visit.find_one({"assigned_client_id": user.user_id,"for_date": datetime.now().date()})
+            if not visit or visit.status.value == VisitStatus.cancelledVisit.value:
+                result.append(user_data)
+                continue
+            else:
+                pract = await get_user(visit.assigned_pract_id)
+                user_data["assigned_to"] = {
+                "for_date": visit.for_date,
+                "assigned_pract_name": pract.name
+                }
+        result.append(user_data)
+    return result,0
 
 
 async def update_role(user_id, entity):
@@ -62,3 +79,11 @@ async def update_role(user_id, entity):
         await user.save()
         return "Role updated successfully",0
     return "Entity type doesn't exist",404
+
+
+async def deactivate(user_id):
+    user = await  get_user(user_id)
+    if not user:
+        return "User not found",404
+    await user.delete()
+    return "User deactivated successfully",0

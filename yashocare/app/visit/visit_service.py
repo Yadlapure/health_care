@@ -84,6 +84,12 @@ async def check_in_out(
         visit.checkOut.lng = lng
         visit.checkOut.img = check_out_object_name
         visit.status = VisitStatus.checkedOut
+        client = await get_user(visit.assigned_client_id)
+        pract = await get_user(visit.assigned_pract_id)
+        client.assigned = False
+        pract.assigned = False
+        await client.save()
+        await pract.save()
         await visit.save()
     else:
         return "No visit assigned today",0
