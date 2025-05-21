@@ -19,7 +19,8 @@ async def create_user(
     password = hash_password(password).decode("utf-8")
     user = Yasho_User(user_id=user_id,name=name,email=email,mobile=mobile,password=password)
     await user.save()
-    return [user],0
+    user = user.model_dump(exclude={"password","id"})
+    return user,0
 
 async def generate_user_login(mobile: str, password: str):
     mobile = str(mobile.replace(" ", "").lower())
