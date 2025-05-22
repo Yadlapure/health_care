@@ -1,6 +1,6 @@
-from typing import Optional, Literal
+from typing import Optional, Literal, Annotated, List
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, UploadFile, File, Form
 from pydantic import BaseModel
 
 from app.app_bundle.auth.authorized_req_user import CurrentUserInfo, get_current_user
@@ -31,16 +31,6 @@ class ClientRegister(BaseModel):
     address: str
     location: Location
 
-class EmployeeRegister(BaseModel):
-    mobile: str
-    password: str
-    name:str
-    email:Optional[str]=None
-    address: str
-    dob: str
-    sex : Literal["male","female"]
-    photo: str
-    id_proof: str
 
 class RoleUpdate(BaseModel):
     user_id:str
@@ -61,7 +51,10 @@ async def handler_user_register(create_req:ClientRegister):
     return {"status_code": status_code, "error": response}
 
 @user_router.post("/employee-register")
-async def handler_user_register(create_req:EmployeeRegister):
+async def handler_user_register(
+        name:str= Form(...),email:str = Form(...),mobile:str=Form(...),address:str=Form(...),sex:Literal["male","female"]=Form(...),dob:str=Form(...),guard_name:str=Form(...),guard_mobile:str=Form(...),
+        id_proof:Annotated[Optional[List[UploadFile]], File()] = [],photo : UploadFile = File(...)
+):
     response,status_code = await create_employee(create_req)
     if status_code == 0:
         return {"status_code": status_code, "data": response}

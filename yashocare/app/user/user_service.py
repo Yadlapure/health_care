@@ -1,6 +1,8 @@
 from datetime import datetime
 from uuid import uuid4
 
+from app.app_bundle.env_config_settings import get_settings
+from app.app_bundle.s3_utils import upload_to_s3
 from app.user.user_enum import UserEntity
 from app.user.user_model import Yasho_User, hash_password, Client, Employee
 from app.user.user_view import EmployeeRegister
@@ -25,28 +27,44 @@ async def create_client(
     user = user.model_dump(exclude={"password","id"})
     return user,0
 
-async def create_employee(create_req:EmployeeRegister):
-    if not create_req.name or not create_req.email or not create_req.mobile or not create_req.password or not create_req.address or not create_req.photo or not create_req.id_proof or not create_req.sex or not create_req.dob:
+async def create_employee(
+        name, email, mobile, address, sex, dob, guard_name, guard_mobile, id_proof, profile
+):
+    if not name or not email or not mobile or not address or not profile or not id_proof or not sex or not dob or not guard_name or not guard_mobile:
         return "Please provide all required fields",401
-    user = await Yasho_User.find_one({"mobile": create_req.mobile})
+    user = await Yasho_User.find_one({"mobile": mobile})
     if user:
         return "User already exists. Please login", 401
     user_id = "P"+str(uuid4().int)[:6]
-    password = hash_password(create_req.password).decode("utf-8")
+    # password = hash_password(password).decode("utf-8")
+    id_proofs=[]
+    for img in id_proof:
+        extension = img.filename.split(".")[-1]
+        name = str(uuid4().int)[:10]
+        imgname = name+"."+extension
+        object_name = upload_to_s3(img.file,f"{user_id}/id_proof/{imgname}",get_settings().config_s3_bucket,extension)
+        if not object_name:
+            return "Error while uploading id_proofs",403
+        id_proofs.append(object_name)
+    extension = profile.filename.split(".")[-1]
+    name = str(uuid4().int)[:10]
+    imgname = name+"."+extension
+    profile_name = upload_to_s3(profile.file,f"{user_id}/profile/{imgname}",get_settings().config_s3_bucket,extension)
     user = Employee(
         user_id=user_id,
-        name=create_req.name,
-        email=create_req.email,
-        mobile=create_req.mobile,
-        password=password,
-        address=create_req.address,
-        dob = create_req.dob,
-        sex = create_req.sex,
-        photo = create_req.photo,
-        id_proof = create_req.id_proof
+        name=name,
+        email=email,
+        mobile=mobile,
+        address=address,
+        dob = dob,
+        sex = sex,
+        guard_name=guard_name,
+        guard_mobile=guard_mobile,
+        profie_photo = profile_name,
+        id_proof = id_proofs
     )
     await user.save()
-    user = user.model_dump(exclude={"password","id"})
+    user = user.model_dump(exclude={"id"})
     return user,0
 
 async def generate_user_login(mobile: str, password: str):
