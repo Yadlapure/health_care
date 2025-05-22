@@ -81,10 +81,10 @@ async def change_sub_merchant_password(user_id,new_password):
     pass
 
 async def get_all_users():
-    users = await Yasho_User.find({"entity_type": {"$in": ["client", "pract"]}}).to_list()
+    users = await Yasho_User.find({"entity_type": {"$in": ["client", "employee"]}}).to_list()
     if not users:
         return "No users found",404
-    users = [user.model_dump(exclude={"password", "id"}) for user in users]
+    users = [user.model_dump(exclude={"id"}) for user in users]
     return users,0
 
 
