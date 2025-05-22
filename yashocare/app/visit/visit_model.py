@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 
 from app.app_bundle.database.base import MongoDocument
 from app.app_bundle.env_config_settings import get_settings
+from app.user.user_enum import UserEntity
 
 IST = pytz.timezone("Asia/Kolkata")
 
@@ -31,19 +32,15 @@ class CheckInOut(BaseModel):
     lng:Optional[str]=None
     img:Optional[str]=None
 
-class Details(BaseModel):
-    checkIn:Optional[CheckInOut]={}
-    checkOut:Optional[CheckInOut]={}
-    daily_status: VisitStatus = VisitStatus.initiated
-    for_date:datetime.date = Field(default_factory=lambda: datetime.now(tz=pytz.UTC).date().isoformat())
-
 class Visit(MongoDocument):
     assigned_client_id:str
     assigned_admin_id:str
     assigned_pract_id:str
-    main_status: VisitStatus = VisitStatus.initiated
     vitals:Optional[Vital]={}
-    details:Optional[List[Details]]=[]
+    checkIn:Optional[CheckInOut]={}
+    checkOut:Optional[CheckInOut]={}
+    status: VisitStatus = VisitStatus.initiated
+    for_date:datetime.date = Field(default_factory=lambda: datetime.now(tz=pytz.UTC).date())
     visit_id:str
 
     class Config:
