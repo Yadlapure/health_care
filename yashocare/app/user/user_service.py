@@ -5,7 +5,6 @@ from app.app_bundle.env_config_settings import get_settings
 from app.app_bundle.s3_utils import upload_to_s3
 from app.user.user_enum import UserEntity
 from app.user.user_model import Yasho_User, hash_password, Client, Employee
-from app.user.user_view import EmployeeRegister
 from app.visit.visit_model import Visit, VisitStatus
 
 

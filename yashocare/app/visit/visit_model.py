@@ -31,15 +31,19 @@ class CheckInOut(BaseModel):
     lng:Optional[str]=None
     img:Optional[str]=None
 
+class Details(BaseModel):
+    checkIn:Optional[CheckInOut]={}
+    checkOut:Optional[CheckInOut]={}
+    daily_status: VisitStatus = VisitStatus.initiated
+    for_date:datetime.date = Field(default_factory=lambda: datetime.now(tz=pytz.UTC).date().isoformat())
+
 class Visit(MongoDocument):
     assigned_client_id:str
     assigned_admin_id:str
     assigned_pract_id:str
+    main_status: VisitStatus = VisitStatus.initiated
     vitals:Optional[Vital]={}
-    checkIn:Optional[CheckInOut]={}
-    checkOut:Optional[CheckInOut]={}
-    status: VisitStatus = VisitStatus.initiated
-    for_date:datetime.date = Field(default_factory=lambda: datetime.now(tz=pytz.UTC).date().isoformat())
+    details:Optional[List[Details]]=[]
     visit_id:str
 
     class Config:
