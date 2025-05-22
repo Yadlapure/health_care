@@ -115,7 +115,6 @@ const App = () => {
                 allowedRoles={["admin"]}
               >
                 <AdminDashboard
-                  user={user}
                   setIsAuthenticated={setIsAuthenticated}
                   setUser={setUser}
                 />

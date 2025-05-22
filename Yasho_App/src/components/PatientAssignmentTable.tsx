@@ -17,83 +17,127 @@ import {
 } from "../components/ui/select";
 import { Input } from "../components/ui/input";
 import { toast } from "react-toastify";
-import { FaCalendar, FaMapPin, FaSearch, FaUser } from "react-icons/fa";
+import { FaCalendar, FaSearch } from "react-icons/fa";
 import auth from "../api/user/auth";
+import visits from "../api/visits/visits";
 
 export const PatientAssignmentTable = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
   const [clients, setClients] = useState([]);
   const [practitioners, setPractitioners] = useState([]);
+  const [visitMap, setVisitMap] = useState({});
 
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const fetchUsers = await auth.getAllUsers();
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const [fetchUsers, fetchVisits] = await Promise.all([
+        auth.getAllUsers(),
+        visits.getVisits(),
+      ]);
 
       if (fetchUsers.status_code !== 0) {
-        toast.error(fetchUsers.error);
+        toast.error(fetchUsers.error || "Failed to fetch users");
         return;
       }
 
       const users = fetchUsers.data;
-
-      const clients = users.filter((user) => user.entity_type === "client");
-      const practs = users.filter((user) => user.entity_type === "pract");
-
-      setClients(clients);
-      setPractitioners(practs);
-    };
-
-    fetchData();
-  }, []);
-  
-
-  const handleAssignPractitioner = async (
-    client_id: string,
-    practitionerId: string
-  ) => {
-    try {
-      setLoading(true);
-      // In a real app, you would make an API call to your backend
-      // Example: await api.assignPractitionerToPatient(patientId, practitionerId,date)
-
-      // For now, we'll update the local state to simulate the change
-      const today = new Date().toISOString().split("T")[0];
-
-      setClients(
-        clients.map((client) =>
-          client.id === client_id
-            ? { ...client, assignedTo: practitionerId, assignedDate: today }
-            : client
-        )
+      const clients = users.filter((u) => u.entity_type === "client");
+      const practs = users.filter(
+        (u) => u.entity_type === "pract" && u.is_active
       );
 
-      toast("Client has been assigned to the practitioner successfully.");
+      let visitStatusMap = {};
+
+      if (fetchVisits.status_code === 0) {
+        const visitsData = fetchVisits.data;
+
+        // Only map non-cancelled visits
+        visitsData.forEach((visit) => {
+          if (
+            visit.state !== "CANCELLEDVISIT" &&
+            visit.assigned_client_id &&
+            visit.assigned_pract_id
+          ) {
+            visitStatusMap[visit.assigned_client_id] = {
+              practitionerId: visit.assigned_pract_id,
+              practitionerName: users.find(
+                (u) => u.user_id === visit.assigned_pract_id
+              )?.name,
+              assignedDate: visit.for_date,
+            };
+          }
+        });
+      }
+
+      const updatedClients = clients.map((client) => {
+        const visit = visitStatusMap[client.user_id];
+        return {
+          ...client,
+          assignedTo: visit?.practitionerId || null,
+          practitionerName: visit?.practitionerName || null,
+          assignedDate: visit?.assignedDate || null,
+        };
+      });
+
+      setVisitMap(visitStatusMap);
+      setClients(updatedClients);
+      setPractitioners(practs);
     } catch (error) {
-      toast("Could not assign patient to practitioner");
+      toast.error("Failed to fetch data.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleUnassignPatient = async (patientId: string) => {
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleAssignPractitioner = async (clientId, practitionerId) => {
     try {
       setLoading(true);
-      // In a real app, you would make an API call to your backend
-      // Example: await api.unassignPatient(patientId)
-
-      setClients(
-        clients.map((client) =>
-          client.id === client_id
-            ? { ...client, assignedTo: undefined, assignedDate: undefined }
-            : client
-        )
+      const date = Date.now();
+      const response = await visits.assignPractToClient(
+        clientId,
+        practitionerId,
+        date
       );
 
-      toast("Client has been unassigned successfully.");
+      if (response.status_code !== 0) {
+        toast.error("Failed to assign practitioner.");
+        return;
+      }
+
+      toast.success("Assigned successfully.");
+      await fetchData();
     } catch (error) {
-      toast("Could not unassign patient");
+      toast.error("Could not assign practitioner.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUnassignPractitioner = async (clientId) => {
+    try {
+      setLoading(true);
+      const assignedDate = clients.find(
+        (c) => c.user_id === clientId
+      )?.assignedDate;
+      const response = await visits.unAssignPractToClient(
+        clientId,
+        assignedDate
+      );
+
+      if (response.status_code !== 0) {
+        toast.error("Failed to unassign practitioner.");
+        return;
+      }
+
+      toast.success("Unassigned successfully.");
+      await fetchData(); // Refresh after unassignment
+    } catch (error) {
+      toast.error("Could not unassign practitioner.");
     } finally {
       setLoading(false);
     }
@@ -102,15 +146,8 @@ export const PatientAssignmentTable = () => {
   const filteredClients = clients.filter(
     (client) =>
       client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      client.address.toLowerCase().includes(searchTerm.toLowerCase())
+      (client.address || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const getAssignedPractitioner = (client_id: string) => {
-    const client = clients.find((c) => c.id === client_id);
-    if (!client?.assignedTo) return null;
-
-    return practitioners.find((c) => c.id === client.assignedTo);
-  };
 
   return (
     <div className="space-y-4">
@@ -129,7 +166,6 @@ export const PatientAssignmentTable = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Client</TableHead>
-              <TableHead>Address</TableHead>
               <TableHead>Assignment Date</TableHead>
               <TableHead>Assigned To</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -146,76 +182,65 @@ export const PatientAssignmentTable = () => {
                 </TableCell>
               </TableRow>
             ) : (
-              filteredClients.map((client) => {
-                const assignedPractitioner = getAssignedPractitioner(client.user_id);
-
-                return (
-                  <TableRow key={client.user_id}>
-                    <TableCell className="flex">
-                      <FaUser className="h-4 w-4 text-gray-500 mr-1" />
-                      <div className="font-medium">{client.name}</div>
-                    </TableCell>
-                    <TableCell>
+              filteredClients.map((client) => (
+                <TableRow key={client.user_id}>
+                  <TableCell>
+                    <div className="font-medium">{client.name}</div>
+                  </TableCell>
+                  <TableCell>
+                    {client.assignedDate && (
                       <div className="flex items-center">
-                        <FaMapPin className="h-4 w-4 mr-2 text-muted-foreground" />
-                        <span className="text-sm truncate max-w-[200px]">
-                          {client.address}
+                        <FaCalendar className="h-4 w-4 mr-2 text-muted-foreground" />
+                        <span>
+                          {new Date(client.assignedDate).toLocaleDateString()}
                         </span>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      {client.assignedDate && (
-                        <div className="flex items-center">
-                          <FaCalendar className="h-4 w-4 mr-2 text-muted-foreground" />
-                          <span>{client.assignedDate}</span>
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {!client.assignedTo ? (
-                        <Select
-                          onValueChange={(value) =>
-                            handleAssignPractitioner(client.user_id, value)
-                          }
-                          disabled={loading}
-                        >
-                          <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="Assign practitioner..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {practitioners
-                              .filter((p) => p.is_active === true)
-                              .map((practitioner) => (
-                                <SelectItem
-                                  key={practitioner.id}
-                                  value={practitioner.id}
-                                >
-                                  {practitioner.name}
-                                </SelectItem>
-                              ))}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <div className="font-medium text-primary">
-                          {assignedPractitioner?.name || "Unknown"}
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {client.assignedTo && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleUnassignPatient(client.user_id)}
-                          disabled={loading}
-                        >
-                          Unassign
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                );
-              })
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {!client.assignedTo ? (
+                      <Select
+                        onValueChange={(value) =>
+                          handleAssignPractitioner(client.user_id, value)
+                        }
+                        disabled={loading}
+                      >
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue placeholder="Assign practitioner..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {practitioners.map((practitioner) => (
+                            <SelectItem
+                              key={practitioner.user_id}
+                              value={practitioner.user_id}
+                            >
+                              {practitioner.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <div className="font-medium text-primary">
+                        {client.practitionerName}
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {client.assignedTo && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          handleUnassignPractitioner(client.user_id)
+                        }
+                        disabled={loading}
+                      >
+                        Unassign
+                      </Button>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))
             )}
           </TableBody>
         </Table>

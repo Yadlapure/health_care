@@ -7,18 +7,20 @@ import {
   CardTitle,
 } from "../components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
-import { UsersTable } from "../components/UsersTable";
+import { ClientsTable } from "../components/ClientsTable";
 import { PatientAssignmentTable } from "../components/PatientAssignmentTable";
 import Header from "../components/Header";
+import { VisitTable } from "../components/VisitTable";
+import { EmployeeTable } from "../components/EmployeeTable";
 
-const AdminDashboard = ({ user, setIsAuthenticated, setUser }) => {
+const AdminDashboard = ({  setIsAuthenticated, setUser }) => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
       <Header
-        // setIsAuthenticated={setIsAuthenticated}
-        // setUser={setUser}
         title="Yashocare"
         rightContent={true}
+        setIsAuthenticated={setIsAuthenticated}
+        setUser={setUser}
       />
       <div className="py-4 w-full max-w-4xl m-auto ">
         <Tabs defaultValue="assignments">
@@ -26,11 +28,14 @@ const AdminDashboard = ({ user, setIsAuthenticated, setUser }) => {
             <TabsTrigger className="min-w-[160px]" value="assignments">
               Patient Assignments
             </TabsTrigger>
-            <TabsTrigger className="min-w-[80px]" value="users">
-              Users
+            <TabsTrigger className="min-w-[80px]" value="visits">
+              Visits
             </TabsTrigger>
-            <TabsTrigger className="min-w-[80px]" value="settings">
+            <TabsTrigger className="min-w-[80px]" value="clients">
               Clients
+            </TabsTrigger>
+            <TabsTrigger className="min-w-[80px]" value="employees">
+              Employees
             </TabsTrigger>
           </TabsList>
 
@@ -39,7 +44,7 @@ const AdminDashboard = ({ user, setIsAuthenticated, setUser }) => {
               <CardHeader>
                 <CardTitle>Patient Assignments</CardTitle>
                 <CardDescription>
-                  Assign practitioners to patients for home visits
+                  Assign practitioners to patients for visits
                 </CardDescription>
               </CardHeader>
 
@@ -49,7 +54,7 @@ const AdminDashboard = ({ user, setIsAuthenticated, setUser }) => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="users" className="mx-2">
+          <TabsContent value="clients" className="mx-2">
             <Card>
               <CardHeader>
                 <CardTitle>Users Management</CardTitle>
@@ -59,22 +64,31 @@ const AdminDashboard = ({ user, setIsAuthenticated, setUser }) => {
               </CardHeader>
 
               <CardContent>
-                <UsersTable />
+                <ClientsTable />
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="settings" className="mx-2">
+          <TabsContent value="visits" className="mx-2">
             <Card>
               <CardHeader>
-                <CardTitle>Admin Settings</CardTitle>
-                <CardDescription>
-                  Configure system-wide settings
-                </CardDescription>
+                <CardTitle>Visits</CardTitle>
               </CardHeader>
 
               <CardContent>
-                <p>Settings panel content will go here.</p>
+                <VisitTable />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="employees" className="mx-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Employees</CardTitle>
+              </CardHeader>
+
+              <CardContent>
+                <EmployeeTable />
               </CardContent>
             </Card>
           </TabsContent>

@@ -19,6 +19,7 @@ import { toast } from "react-toastify";
 import visits from "../api/visits/visits";
 import { base64ToFile } from "../utils/base64ToFile";
 import PractDashboard from "../components/PractDashboard";
+import AttendanceLog from "../components/AttendanceLog";
 
 
 const PractitionerDetail = ({ setIsAuthenticated, setUser }) => {
@@ -253,6 +254,9 @@ const PractitionerDetail = ({ setIsAuthenticated, setUser }) => {
         />
         <div className="p-4 text-center">
           <p className="mb-4">The requested visit could not be found.</p>
+        </div>
+        <div className="p-4">
+          <AttendanceLog />
         </div>
       </div>
     );

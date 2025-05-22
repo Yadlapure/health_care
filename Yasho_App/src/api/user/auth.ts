@@ -5,7 +5,9 @@ const PreApi = {
   login: "/api/v1/user/login",
   me: "/api/v1/user/me",
   register: "/api/v1/user/register",
-  getAllUsers:"/api/v1/user/allUsers"
+  getAllUsers: "/api/v1/user/allUsers",
+  updateRole: "/api/v1/user/role-update",
+  registerEmployee:"/api/v1/user/employee-register"
 };
 
 const login = async (mobile:any, password:any) => {
@@ -67,10 +69,46 @@ const getAllUsers = async () => {
   }
 };
 
+const updateRole = async (user_id: any, entity: any) => {
+  try {
+    const response = await apiClient.put(
+      `${PreApi.updateRole}`,
+      { user_id, entity },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching login:", error);
+    return null;
+  }
+};
+
+const registerEmployee = async (formData:any) => {
+  try {
+    const response = await apiClient.post(
+      `${PreApi.registerEmployee}`,
+      formData,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching image URLs:", error);
+    return null;
+  }
+};
+
 export default {
   login,
   getMe,
   register,
   getAllUsers,
+  updateRole,
+  registerEmployee,
 };
   

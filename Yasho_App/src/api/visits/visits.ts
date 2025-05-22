@@ -5,6 +5,8 @@ const PreApi = {
   getImage: "/api/v1/visit/get-image-url",
   updateVitals: "/api/v1/visit/update-vitals",
   updateCheckInOut: "/api/v1/visit/checkInOut",
+  assign: "/api/v1/visit/assign",
+  UnAssign: "/api/v1/visit/unassign",
 };
 
 
@@ -52,10 +54,55 @@ const updatecheckInOut = async (formData) => {
   }
 };
 
+const assignPractToClient = async (clientId,practId,date) => {
+  try {
+    const response = await apiClient.post(
+      `${PreApi.assign}`,
+      {
+        clientId,
+        practId,
+        date,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching image URLs:", error);
+    return null;
+  }
+};
+
+const unAssignPractToClient = async (clientId, date) => {
+  try {
+    const response = await apiClient.post(
+      `${PreApi.UnAssign}`,
+      {
+        clientId,
+        date,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching image URLs:", error);
+    return null;
+  }
+};
+
 
 export default {
   getVisits,
   getImageURL,
   updateVitals,
   updatecheckInOut,
+  assignPractToClient,
+  unAssignPractToClient,
 };
