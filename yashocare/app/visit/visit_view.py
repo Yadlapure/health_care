@@ -12,9 +12,10 @@ from app.visit.visit_service import assign,check_in_out, update_vitals, get_visi
 visit_router = APIRouter()
 
 class Assign(BaseModel):
-    practId:str
+    empId:str
     clientId:str
-    date:datetime
+    from_ts:datetime
+    to_ts:datetime
 
 class Unassign(BaseModel):
     clientId:str
@@ -27,7 +28,7 @@ async def handler_assign(
 ):
     if curr_user["entity_type"] != UserEntity.admin.value:
         return {"error":"Not Authorized","status_code":401}
-    response, status_code = await assign(admin_id=curr_user["user_id"],client_id=assign_req.clientId,pract_id=assign_req.practId,date=assign_req.date)
+    response, status_code = await assign(admin_id=curr_user["user_id"],client_id=assign_req.clientId,emp_id=assign_req.empId,from_ts=assign_req.from_ts,to_ts=assign_req.to_ts)
     if status_code == 0:
         return {"status_code": status_code, "data": response}
     return {"status_code": status_code, "error": response}

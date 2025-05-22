@@ -5,25 +5,24 @@ from app.app_bundle.env_config_settings import get_settings
 from app.app_bundle.s3_utils import upload_to_s3
 from app.user.user_enum import UserEntity
 from app.user.user_model import Yasho_User, hash_password, Client, Employee
-from app.visit.visit_model import Visit, VisitStatus
 
 
 async def get_user(user_id:str):
     return await Yasho_User.find_one({"user_id":user_id})
 
 async def create_client(
-        name,email,mobile,password, address, location
+        name,email,mobile, address, location
 ):
-    if not name or not email or not mobile or not password or not address:
+    if not name or not email or not mobile or not address:
         return "Please provide all required fields",401
     user = await Yasho_User.find_one({"mobile": mobile})
     if user:
         return "User already exists. Please login", 401
     user_id = "C"+str(uuid4().int)[:6]
-    password = hash_password(password).decode("utf-8")
-    user = Client(user_id=user_id,name=name,email=email,mobile=mobile,password=password,address=address,location=location)
+    # password = hash_password(password).decode("utf-8")
+    user = Client(user_id=user_id,name=name,email=email,mobile=mobile,address=address,location=location)
     await user.save()
-    user = user.model_dump(exclude={"password","id"})
+    user = user.model_dump(exclude={"id"})
     return user,0
 
 async def create_employee(
@@ -34,7 +33,7 @@ async def create_employee(
     user = await Yasho_User.find_one({"mobile": mobile})
     if user:
         return "User already exists. Please login", 401
-    user_id = "P"+str(uuid4().int)[:6]
+    user_id = "E"+str(uuid4().int)[:6]
     # password = hash_password(password).decode("utf-8")
     id_proofs=[]
     for img in id_proof:

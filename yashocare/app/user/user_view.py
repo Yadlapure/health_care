@@ -25,7 +25,6 @@ class UserLogin(BaseModel):
 
 class ClientRegister(BaseModel):
     mobile: str
-    password: str
     name:str
     email:str
     address: str
@@ -42,7 +41,6 @@ async def handler_user_register(create_req:ClientRegister):
         name = create_req.name,
         email = create_req.email,
         mobile = create_req.mobile,
-        password = create_req.password,
         address = create_req.address,
         location = create_req.location
     )

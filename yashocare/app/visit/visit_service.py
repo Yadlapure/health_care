@@ -26,33 +26,32 @@ from app.visit.visit_model import Visit, VisitStatus
 # print(f"Created bucket {bucket_name}")
 
 
-async def assign(admin_id:str,client_id:str,pract_id:str, date:datetime):
+async def assign(admin_id:str,client_id:str,emp_id:str, from_ts:datetime,to_ts:datetime):
     status = VisitStatus.initiated
     visit_id = "V" + str(uuid4().int)[:6]
 
     client = await get_user(client_id)
-    pract = await get_user(pract_id)
-    if not client or not pract:
+    employee = await get_user(emp_id)
+    if not client or not employee:
         return {"message":"Incorrect Credentials"},401
-    visit = await Visit.find_one({"assigned_client_id":client_id,"for_date":date.date()})
+    visit = await Visit.find_one({"assigned_client_id":client_id,"from_date":from_ts.date(),"to_ts":to_ts.date()})
     if visit:
-        visit.assigned_pract_id = pract_id
-        visit.status = VisitStatus.initiated
+        visit.assigned_emp_id = emp_id
+        visit.main_status = VisitStatus.initiated
         visit.assigned_admin_id = admin_id
         await visit.save()
     else :
-        visit = Visit(assigned_admin_id=admin_id,assigned_client_id=client_id,assigned_pract_id=pract_id,status=status,visit_id=visit_id, for_date=date.date())
+        visit = Visit(assigned_admin_id=admin_id,assigned_client_id=client_id,assigned_emp_id=emp_id,main_status=status,visit_id=visit_id, from_ts=from_ts.date(),to_ts=to_ts.date())
         await visit.save()
-    client.assigned=True
-    pract.assigned=True
     await client.save()
-    await pract.save()
+    await employee.save()
     return {
         "client_id":client.user_id,
         "client_name":client.name,
-        "pract_id":pract.user_id,
-        "pract_name":pract.name,
-        "for_date":date.date()
+        "emp_id":employee.user_id,
+        "emp_name":employee.name,
+        "from_ts":from_ts.date(),
+        "to_ts":to_ts.date()
     }, 0
 
 
@@ -66,20 +65,22 @@ async def check_in_out(
     extension = img.filename.split(".")[-1]
     name = str(uuid4().int)[:10]
     imgname = name+"."+extension
-    visit = await Visit.find_one({"assigned_pract_id":pract_id,"status": {"$in": ["INITIATED", "CHECKEDIN", "VITALUPDATE"]},"for_date":date.date()})
+    visit = await Visit.find_one({"assigned_pract_id":pract_id,"main_status": {"$in": ["INITIATED", "CHECKEDIN", "CHECKEDOUT"]},"from_ts": {"$le": date.date()},"to_ts":{"$ge":date.date()}})
     if not visit:
-        return "No visit assigned today",0
-    if visit.status.value == VisitStatus.initiated.value:
-        check_in_object_name = upload_to_s3(img.file,f"checkin/{imgname}",get_settings().config_s3_bucket,extension)
-        if not check_in_object_name:
-            return "Error while uploading",403
-        visit.checkIn.at = date
-        visit.checkIn.lat = lat
-        visit.checkIn.lng = lng
-        visit.checkIn.img = check_in_object_name
+        return "No visit assigned for today",0
+    if visit.main_status.value == VisitStatus.initiated.value or visit.main_status.value == VisitStatus.checkedIn.value:
+        for i in visit.details:
+            if i.daily_status.value == VisitStatus.initiated.value:
+                check_in_object_name = upload_to_s3(img.file,f"checkin/{imgname}",get_settings().config_s3_bucket,extension)
+                if not check_in_object_name:
+                    return "Error while uploading",403
+            i.checkIn.at = date
+            i.checkIn.lat = lat
+            i.checkIn.lng = lng
+            i.daily_status = VisitStatus.checkedIn
         visit.status = VisitStatus.checkedIn
         await visit.save()
-    elif visit.status.value == VisitStatus.vitalUpdate.value :
+    elif visit.main_status.value == VisitStatus.vitalUpdate.value :
         if not visit.vitals.notes:
             return "Provide vitals before checkout",0
         check_out_object_name = upload_to_s3(img.file,f"checkout/{imgname}",get_settings().config_s3_bucket,extension)

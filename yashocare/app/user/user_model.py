@@ -22,6 +22,7 @@ class Location(BaseModel):
 class Yasho_User(MongoDocument):
     name:str
     mobile:Indexed(str)
+    password:Optional[str]=None
     email:Optional[str] = None
     entity_type:UserEntity
     user_id:str
