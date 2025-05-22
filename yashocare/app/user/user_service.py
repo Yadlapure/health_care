@@ -2,24 +2,49 @@ from datetime import datetime
 from uuid import uuid4
 
 from app.user.user_enum import UserEntity
-from app.user.user_model import Yasho_User, hash_password
+from app.user.user_model import Yasho_User, hash_password, Client, Employee
+from app.user.user_view import EmployeeRegister
 from app.visit.visit_model import Visit, VisitStatus
 
 
 async def get_user(user_id:str):
     return await Yasho_User.find_one({"user_id":user_id})
 
-async def create_user(
-        name,email,mobile,password
+async def create_client(
+        name,email,mobile,password, address, location
 ):
-    if not name or not email or not mobile or not password:
+    if not name or not email or not mobile or not password or not address:
         return "Please provide all required fields",401
     user = await Yasho_User.find_one({"mobile": mobile})
     if user:
         return "User already exists. Please login", 401
     user_id = "C"+str(uuid4().int)[:6]
     password = hash_password(password).decode("utf-8")
-    user = Yasho_User(user_id=user_id,name=name,email=email,mobile=mobile,password=password)
+    user = Client(user_id=user_id,name=name,email=email,mobile=mobile,password=password,address=address,location=location)
+    await user.save()
+    user = user.model_dump(exclude={"password","id"})
+    return user,0
+
+async def create_employee(create_req:EmployeeRegister):
+    if not create_req.name or not create_req.email or not create_req.mobile or not create_req.password or not create_req.address or not create_req.photo or not create_req.id_proof or not create_req.sex or not create_req.dob:
+        return "Please provide all required fields",401
+    user = await Yasho_User.find_one({"mobile": create_req.mobile})
+    if user:
+        return "User already exists. Please login", 401
+    user_id = "P"+str(uuid4().int)[:6]
+    password = hash_password(create_req.password).decode("utf-8")
+    user = Employee(
+        user_id=user_id,
+        name=create_req.name,
+        email=create_req.email,
+        mobile=create_req.mobile,
+        password=password,
+        address=create_req.address,
+        dob = create_req.dob,
+        sex = create_req.sex,
+        photo = create_req.photo,
+        id_proof = create_req.id_proof
+    )
     await user.save()
     user = user.model_dump(exclude={"password","id"})
     return user,0

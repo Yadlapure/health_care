@@ -1,9 +1,20 @@
+from typing import Optional, Literal
+
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
 from app.app_bundle.auth.authorized_req_user import CurrentUserInfo, get_current_user
 from app.user.user_enum import UserEntity
-from app.user.user_service import generate_user_login, get_user, create_user, change_sub_merchant_password, get_all_users, update_role, deactivate
+from app.user.user_model import Location
+from app.user.user_service import (
+    generate_user_login,
+    get_user,
+    create_client,
+    create_employee,
+    get_all_users,
+    update_role,
+    deactivate
+)
 
 user_router = APIRouter()
 
@@ -12,24 +23,46 @@ class UserLogin(BaseModel):
     mobile: str
     password: str
 
-class Register(BaseModel):
+class ClientRegister(BaseModel):
     mobile: str
     password: str
     name:str
     email:str
+    address: str
+    location: Location
+
+class EmployeeRegister(BaseModel):
+    mobile: str
+    password: str
+    name:str
+    email:Optional[str]=None
+    address: str
+    dob: str
+    sex : Literal["male","female"]
+    photo: str
+    id_proof: str
 
 class RoleUpdate(BaseModel):
     user_id:str
     entity:str
 
-@user_router.post("/register")
-async def handler_user_register(create_req:Register):
-    response,status_code = await create_user(
+@user_router.post("/client-register")
+async def handler_user_register(create_req:ClientRegister):
+    response,status_code = await create_client(
         name = create_req.name,
         email = create_req.email,
         mobile = create_req.mobile,
-        password = create_req.password
+        password = create_req.password,
+        address = create_req.address,
+        location = create_req.location
     )
+    if status_code == 0:
+        return {"status_code": status_code, "data": response}
+    return {"status_code": status_code, "error": response}
+
+@user_router.post("/employee-register")
+async def handler_user_register(create_req:EmployeeRegister):
+    response,status_code = await create_employee(create_req)
     if status_code == 0:
         return {"status_code": status_code, "data": response}
     return {"status_code": status_code, "error": response}
@@ -50,20 +83,6 @@ async def user_login(
 
 class ResetSubMerchantPassword(BaseModel):
     new_password: str
-
-
-@user_router.post("/reset-password/{sub_merchant_id}")
-async def bull_shit_login(
-        change_password: ResetSubMerchantPassword,
-        curr_user: CurrentUserInfo
-):
-    response, status_code = await change_sub_merchant_password(
-        user_id = curr_user.user_id,
-        new_password=change_password.new_password,
-    )
-    if status_code == 0:
-        return {"status_code": status_code, "data": response}
-    return {"status_code": status_code, "error": response}
 
 
 @user_router.get("/me")

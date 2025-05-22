@@ -1,5 +1,5 @@
 from datetime import datetime,timedelta
-from typing import List, Optional
+from typing import List, Optional, Literal
 
 import bcrypt
 import jwt
@@ -16,20 +16,16 @@ IST = pytz.timezone("Asia/Kolkata")
 
 
 class Location(BaseModel):
-    at:datetime
-    to:datetime
+    lng:str
     lat:str
 
 class Yasho_User(MongoDocument):
     name:str
     mobile:Indexed(str)
     password:str
-    email:str
-    entity_type:Optional[UserEntity]=UserEntity.client
-    photo:Optional[str]=None
+    email:Optional[str] = None
+    entity_type:UserEntity
     user_id:str
-    assigned:Optional[bool]=False
-    # locations:Location
 
     class Settings:
         name = f"{get_settings().service_name}_{get_settings().environment}_user"
@@ -53,3 +49,20 @@ def hash_password(password: str) -> bytes:
     pw = bytes(password, "utf-8")
     salt = bcrypt.gensalt()
     return bcrypt.hashpw(pw, salt)
+
+
+class Admin(Yasho_User):
+    entity_type:UserEntity = UserEntity.admin
+
+class Client(Yasho_User):
+    entity_type:UserEntity = UserEntity.client
+    address: str
+    location:Location
+
+class Employee(Yasho_User):
+    entity_type:UserEntity = UserEntity.employee
+    dob: str
+    sex: Literal["male", "female"]
+    address: str
+    photo: str
+    id_proof: str

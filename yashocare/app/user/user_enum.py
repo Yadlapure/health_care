@@ -2,5 +2,6 @@ import enum
 
 class UserEntity(enum.Enum):
     admin = "admin"
-    pract = "pract"
+    employee = "employee"
     client = "client"
+    pract = "pract"
