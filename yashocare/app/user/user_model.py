@@ -16,8 +16,8 @@ IST = pytz.timezone("Asia/Kolkata")
 
 
 class Location(BaseModel):
-    lng:str
-    lat:str
+    lng:Optional[str] = ""
+    lat:Optional[str] = ""
 
 class Yasho_User(MongoDocument):
     name:str
@@ -56,8 +56,8 @@ class Admin(Yasho_User):
 
 class Client(Yasho_User):
     entity_type:UserEntity = UserEntity.client
-    address: str
-    location:Location
+    address: Optional[str] = ""
+    location:Optional[Location] = {}
 
 class Employee(Yasho_User):
     entity_type:UserEntity = UserEntity.employee
