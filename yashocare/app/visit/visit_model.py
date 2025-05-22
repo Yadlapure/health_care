@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 
 from app.app_bundle.database.base import MongoDocument
 from app.app_bundle.env_config_settings import get_settings
+from app.user.user_model import Location
 
 IST = pytz.timezone("Asia/Kolkata")
 
@@ -41,11 +42,13 @@ class Details(BaseModel):
 class Visit(MongoDocument):
     assigned_client_id:str
     assigned_admin_id:str
-    assigned_emp_id:str
+    assigned_pract_id:Optional[str]=None
+    assigned_emp_id:Optional[str]=None
+    location: Optional[Location]={}
     main_status: VisitStatus = VisitStatus.initiated
     details:Optional[List[Details]]=[]
-    from_ts:datetime
-    to_ts:datetime
+    from_ts:Optional[datetime]=None
+    to_ts:Optional[datetime]=None
     visit_id:str
 
     class Settings:

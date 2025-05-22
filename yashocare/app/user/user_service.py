@@ -10,6 +10,12 @@ from app.user.user_model import Yasho_User, hash_password, Client, Employee
 async def get_user(user_id:str):
     return await Yasho_User.find_one({"user_id":user_id})
 
+async def get_client(user_id:str):
+    return await Client.find_one({"user_id":user_id})
+
+async def get_employee(user_id:str):
+    return await Employee.find_one({"user_id":user_id})
+
 async def create_client(
         name,email,mobile, address, location
 ):

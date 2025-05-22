@@ -7,7 +7,7 @@ from fastapi import UploadFile, File
 from app.app_bundle.env_config_settings import get_settings
 from app.app_bundle.s3_utils import generate_pre_signed_urls, upload_to_s3
 from app.user.user_enum import UserEntity
-from app.user.user_service import get_user
+from app.user.user_service import get_user, get_client, get_employee
 from app.visit.visit_model import Visit, VisitStatus
 
 
@@ -30,8 +30,9 @@ async def assign(admin_id:str,client_id:str,emp_id:str, from_ts:datetime,to_ts:d
     status = VisitStatus.initiated
     visit_id = "V" + str(uuid4().int)[:6]
 
-    client = await get_user(client_id)
-    employee = await get_user(emp_id)
+    client = await get_client(client_id)
+    employee = await get_employee(emp_id)
+    location = client.location
     if not client or not employee:
         return {"message":"Incorrect Credentials"},401
     visit = await Visit.find_one({"assigned_client_id":client_id,"from_date":from_ts.date(),"to_ts":to_ts.date()})
@@ -39,9 +40,10 @@ async def assign(admin_id:str,client_id:str,emp_id:str, from_ts:datetime,to_ts:d
         visit.assigned_emp_id = emp_id
         visit.main_status = VisitStatus.initiated
         visit.assigned_admin_id = admin_id
+        visit.location = location
         await visit.save()
     else :
-        visit = Visit(assigned_admin_id=admin_id,assigned_client_id=client_id,assigned_emp_id=emp_id,main_status=status,visit_id=visit_id, from_ts=from_ts.date(),to_ts=to_ts.date())
+        visit = Visit(assigned_admin_id=admin_id,assigned_client_id=client_id,assigned_emp_id=emp_id,main_status=status,visit_id=visit_id, from_ts=from_ts.date(),to_ts=to_ts.date(),location=location)
         await visit.save()
     await client.save()
     await employee.save()
@@ -65,20 +67,29 @@ async def check_in_out(
     extension = img.filename.split(".")[-1]
     name = str(uuid4().int)[:10]
     imgname = name+"."+extension
-    visit = await Visit.find_one({"assigned_pract_id":pract_id,"main_status": {"$in": ["INITIATED", "CHECKEDIN", "CHECKEDOUT"]},"from_ts": {"$le": date.date()},"to_ts":{"$ge":date.date()}})
+    visit = await Visit.find_one({"assigned_emp_id":pract_id,"main_status": {"$in": ["INITIATED", "CHECKEDIN", "CHECKEDOUT"]},"from_ts": {"$lte": date.date()},"to_ts":{"$gte":date.date()}})
     if not visit:
         return "No visit assigned for today",0
     if visit.main_status.value == VisitStatus.initiated.value or visit.main_status.value == VisitStatus.checkedIn.value:
-        for i in visit.details:
-            if i.daily_status.value == VisitStatus.initiated.value:
-                check_in_object_name = upload_to_s3(img.file,f"checkin/{imgname}",get_settings().config_s3_bucket,extension)
-                if not check_in_object_name:
-                    return "Error while uploading",403
-            i.checkIn.at = date
-            i.checkIn.lat = lat
-            i.checkIn.lng = lng
-            i.daily_status = VisitStatus.checkedIn
-        visit.status = VisitStatus.checkedIn
+        # for i in visit.details:
+        #     if i.daily_status.value == VisitStatus.initiated.value:
+        #         check_in_object_name = upload_to_s3(img.file,f"checkin/{imgname}",get_settings().config_s3_bucket,extension)
+        #         if not check_in_object_name:
+        #             return "Error while uploading",403
+        #     i.checkIn.at = date
+        #     i.checkIn.lat = lat
+        #     i.checkIn.lng = lng
+        #     i.daily_status = VisitStatus.checkedIn
+        obj ={"checkIn": {
+            "at": date,
+            "lat": lat,
+            "lng": lng,
+            "daily_status": VisitStatus.checkedIn
+        }
+        }
+        if not visit.details:
+            visit.details.append(obj)
+        visit.main_status = VisitStatus.checkedIn
         await visit.save()
     elif visit.main_status.value == VisitStatus.vitalUpdate.value :
         if not visit.vitals.notes:

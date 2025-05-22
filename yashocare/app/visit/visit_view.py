@@ -39,7 +39,7 @@ async def handler_check_in_out(
         lat : str =Form(...),lng : str=Form(...),img : UploadFile = File(...),
         curr_user: CurrentUserInfo = Depends(get_current_user)
 ):
-    if curr_user["entity_type"] != UserEntity.pract.value:
+    if curr_user["entity_type"] != UserEntity.employee.value:
         return {"error":"Not Authorized","status_code":401}
     response, status_code = await check_in_out(pract_id = curr_user["user_id"],lat = lat,lng = lng, img = img)
     if status_code == 0:
