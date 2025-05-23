@@ -38,7 +38,7 @@ async def assign(admin_id:str,client_id:str,emp_id:str, from_ts:datetime,to_ts:d
     }
     if not client or not employee or from_ts.date() < datetime.now().date():
         return {"message":"Incorrect Credentials"},401
-    visit = await Visit.find_one({"assigned_client_id":client_id,"from_date":from_ts.date(),"to_ts":to_ts.date()})
+    visit = await Visit.find_one({"assigned_client_id":client_id,"from_date":from_ts,"to_ts":to_ts})
     details = [{
         "daily_status": VisitStatus.initiated,
         "for_date": from_ts.date()
@@ -53,8 +53,7 @@ async def assign(admin_id:str,client_id:str,emp_id:str, from_ts:datetime,to_ts:d
     else :
         visit = Visit(assigned_admin_id=admin_id,assigned_client_id=client_id,assigned_emp_id=emp_id,main_status=status,visit_id=visit_id, from_ts=from_ts.date(),to_ts=to_ts.date(),location=location,details=details)
         await visit.save()
-    await client.save()
-    await employee.save()
+
     return {
         "client_id":client.user_id,
         "client_name":client.name,
@@ -191,36 +190,38 @@ async def get_visits(curr_user):
         visits = await Visit.find({"assigned_client_id":curr_user["user_id"]}).to_list()
         if not visits:
             return "No visits available",403
-        for i in visits:
-            visited_pract = await get_user(i.assigned_pract_id)
-            obj = {
-                "vitals": i.vitals,
-                "checkIn": i.checkIn.at,
-                "checkOut": i.checkOut.at,
-                "visit_id": i.visit_id,
-                "assigned_pract":visited_pract.name,
-                "status":i.status
-            }
-            visitsArray.append(obj)
+        # for i in visits:
+        #     visited_pract = await get_user(i.assigned_pract_id)
+        #     obj = {
+        #         "vitals": i.vitals,
+        #         "checkIn": i.checkIn.at,
+        #         "checkOut": i.checkOut.at,
+        #         "visit_id": i.visit_id,
+        #         "assigned_pract":visited_pract.name,
+        #         "status":i.status
+        #     }
+        #     visitsArray.append(obj)
+        return visits,0
+
 
     if curr_user["entity_type"] == UserEntity.employee.value:
         visits = await Visit.find({"assigned_emp_id":curr_user["user_id"],"main_status": {"$ne": VisitStatus.cancelledVisit.value}}).to_list()
         if not visits:
             return "No visits assigned",403
-        for i in visits:
-            assigned_client = await get_user(i.assigned_client_id)
-            for item in i.details:
-                obj = {
-                    "visit_id": i.visit_id,
-                    "checkIn": item.checkIn.at,
-                    "checkOut": item.checkOut.at,
-                    "assigned_client":assigned_client.name,
-                    "status":item.daily_status,
-                    "for_date":item.for_date
-                }
-                visitsArray.append(obj)
+        # for i in visits:
+        #     assigned_client = await get_user(i.assigned_client_id)
+        #     for item in i.details:
+        #         obj = {
+        #             "visit_id": i.visit_id,
+        #             "checkIn": item.checkIn.at,
+        #             "checkOut": item.checkOut.at,
+        #             "assigned_client":assigned_client.name,
+        #             "status":item.daily_status,
+        #             "for_date":item.for_date
+        #         }
+        #         visitsArray.append(obj)
 
-    return visitsArray,0
+        return visits,0
 
 
 async def get_image_urls(object_names):
