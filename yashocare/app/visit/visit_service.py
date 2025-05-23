@@ -203,7 +203,7 @@ async def get_visits(curr_user):
             }
             visitsArray.append(obj)
 
-    if curr_user["entity_type"] == UserEntity.pract.value:
+    if curr_user["entity_type"] == UserEntity.employee.value:
         visits = await Visit.find({"assigned_pract_id":curr_user["user_id"],"status":VisitStatus.initiated.value,"for_date":datetime.now(tz=pytz.UTC).date()}).to_list()
         if not visits:
             return "No visits assigned",403
