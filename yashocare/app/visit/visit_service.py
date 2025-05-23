@@ -36,7 +36,7 @@ async def assign(admin_id:str,client_id:str,emp_id:str, from_ts:datetime,to_ts:d
         "lat":lat,
         "lng":lng
     }
-    if not client or not employee:
+    if not client or not employee or from_ts.date() < datetime.now().date():
         return {"message":"Incorrect Credentials"},401
     visit = await Visit.find_one({"assigned_client_id":client_id,"from_date":from_ts.date(),"to_ts":to_ts.date()})
     details = [{
