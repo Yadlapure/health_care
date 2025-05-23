@@ -34,7 +34,7 @@ class Yasho_User(MongoDocument):
             {
                 "user_id": str(self.user_id),
                 "entity_type": str(entity_type.value),
-                "exp": datetime.now(tz=IST) + timedelta(days=1),
+                "exp": datetime.now(tz=IST) + timedelta(days=7),
             },
             key=get_settings().jwt_secret,
             algorithm="HS256",
