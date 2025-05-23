@@ -17,7 +17,7 @@ async def get_employee(user_id:str):
     return await Employee.find_one({"user_id":user_id})
 
 async def create_client(
-        name,email,mobile, address, location
+        name,email,mobile, address
 ):
     if not name or not email or not mobile or not address:
         return "Please provide all required fields",401
@@ -26,7 +26,7 @@ async def create_client(
         return "User already exists. Please login", 401
     user_id = "C"+str(uuid4().int)[:6]
     # password = hash_password(password).decode("utf-8")
-    user = Client(user_id=user_id,name=name,email=email,mobile=mobile,address=address,location=location)
+    user = Client(user_id=user_id,name=name,email=email,mobile=mobile,address=address)
     await user.save()
     user = user.model_dump(exclude={"id"})
     return user,0

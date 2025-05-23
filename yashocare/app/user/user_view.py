@@ -5,7 +5,6 @@ from pydantic import BaseModel
 
 from app.app_bundle.auth.authorized_req_user import CurrentUserInfo, get_current_user
 from app.user.user_enum import UserEntity
-from app.user.user_model import Location
 from app.user.user_service import (
     generate_user_login,
     get_user,
@@ -28,7 +27,6 @@ class ClientRegister(BaseModel):
     name:str
     email:str
     address: str
-    location: Location
 
 
 class RoleUpdate(BaseModel):
@@ -42,7 +40,6 @@ async def handler_user_register(create_req:ClientRegister):
         email = create_req.email,
         mobile = create_req.mobile,
         address = create_req.address,
-        location = create_req.location
     )
     if status_code == 0:
         return {"status_code": status_code, "data": response}

@@ -15,10 +15,6 @@ from app.user.user_enum import UserEntity
 IST = pytz.timezone("Asia/Kolkata")
 
 
-class Location(BaseModel):
-    lng:Optional[str] = ""
-    lat:Optional[str] = ""
-
 class Yasho_User(MongoDocument):
     name:str
     mobile:Indexed(str)
@@ -57,7 +53,6 @@ class Admin(Yasho_User):
 class Client(Yasho_User):
     entity_type:UserEntity = UserEntity.client
     address: Optional[str] = ""
-    location:Optional[Location] = {}
 
 class Employee(Yasho_User):
     entity_type:UserEntity = UserEntity.employee

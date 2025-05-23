@@ -8,7 +8,6 @@ from pydantic import BaseModel, Field
 
 from app.app_bundle.database.base import MongoDocument
 from app.app_bundle.env_config_settings import get_settings
-from app.user.user_model import Location
 
 IST = pytz.timezone("Asia/Kolkata")
 
@@ -18,6 +17,10 @@ class Vital(BaseModel):
     sugar:Optional[str]=None
     notes:str=""
     prescription_images:Optional[List[str]]=[]
+
+class Location(BaseModel):
+    lng:Optional[str] = ""
+    lat:Optional[str] = ""
 
 class VisitStatus(enum.Enum):
     initiated="INITIATED"

@@ -14,6 +14,8 @@ visit_router = APIRouter()
 class Assign(BaseModel):
     empId:str
     clientId:str
+    lat:str
+    lng:str
     from_ts:datetime
     to_ts:datetime
 
@@ -28,7 +30,7 @@ async def handler_assign(
 ):
     if curr_user["entity_type"] != UserEntity.admin.value:
         return {"error":"Not Authorized","status_code":401}
-    response, status_code = await assign(admin_id=curr_user["user_id"],client_id=assign_req.clientId,emp_id=assign_req.empId,from_ts=assign_req.from_ts,to_ts=assign_req.to_ts)
+    response, status_code = await assign(admin_id=curr_user["user_id"],client_id=assign_req.clientId,emp_id=assign_req.empId,from_ts=assign_req.from_ts,to_ts=assign_req.to_ts,lat=assign_req.lat,lng=assign_req.lng)
     if status_code == 0:
         return {"status_code": status_code, "data": response}
     return {"status_code": status_code, "error": response}
@@ -36,29 +38,30 @@ async def handler_assign(
 
 @visit_router.post("/checkInOut")
 async def handler_check_in_out(
-        lat : str =Form(...),lng : str=Form(...),img : UploadFile = File(...),
+        lat : str =Form(...),lng : str=Form(...),visit_id:str=Form(...),img : UploadFile = File(...),
         curr_user: CurrentUserInfo = Depends(get_current_user)
 ):
     if curr_user["entity_type"] != UserEntity.employee.value:
         return {"error":"Not Authorized","status_code":401}
-    response, status_code = await check_in_out(pract_id = curr_user["user_id"],lat = lat,lng = lng, img = img)
+    response, status_code = await check_in_out(visit_id = visit_id,lat = lat,lng = lng, img = img)
     if status_code == 0:
         return {"status_code": status_code, "data": response}
     return {"status_code": status_code, "error": response}
 
 @visit_router.post("/update-vitals")
 async def handler_update_vitals(
-        notes:str= Form(...),prescription_images:Annotated[Optional[List[UploadFile]], File()] = [],bloodPressure:str= Form(""),sugar:str= Form(""),
+        notes:str= Form(...),visit_id:str= Form(...),
+        # prescription_images:Annotated[Optional[List[UploadFile]], File()] = [],
+        bloodPressure:str= Form(""),sugar:str= Form(""),
         curr_user: CurrentUserInfo = Depends(get_current_user)
 ):
-    if curr_user["entity_type"] != UserEntity.pract.value:
+    if curr_user["entity_type"] != UserEntity.employee.value:
         return {"error":"Not Authorized","status_code":401}
     response, status_code = await update_vitals(
-        pract_id = curr_user["user_id"],
         bloodPressure=bloodPressure,
         sugar = sugar,
         notes = notes,
-        prescription_images = prescription_images
+        visit_id = visit_id
     )
     if status_code == 0:
         return {"status_code": status_code, "data": response}
