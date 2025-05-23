@@ -180,8 +180,13 @@ async def update_vitals(visit_id,bloodPressure,sugar,notes):
     return "Vitals Updated Successfully", 0
 
 async def get_visits(curr_user):
+    allowed_statuses = [
+        VisitStatus.initiated.value,
+        VisitStatus.checkedIn.value,
+        VisitStatus.checkedOut.value,
+    ]
     if curr_user["entity_type"] == UserEntity.admin.value:
-        visits =await Visit.find({"assigned_admin_id":curr_user["user_id"],"status": {"$ne": VisitStatus.cancelledVisit.value}}).to_list()
+        visits =await Visit.find({"assigned_admin_id":curr_user["user_id"],"main_status": {"$ne": VisitStatus.cancelledVisit.value}}).to_list()
         if not visits:
             return "No visits available",403
         return visits,0
@@ -209,15 +214,16 @@ async def get_visits(curr_user):
             return "No visits assigned",403
         for i in visits:
             assigned_client = await get_user(i.assigned_client_id)
-            obj = {
-                "visit_id": i.visit_id,
-                "checkIn": i.checkIn.at,
-                "checkOut": i.checkOut.at,
-                "assigned_client":assigned_client.name,
-                "status":i.status,
-                "for_date":i.for_date
-            }
-            visitsArray.append(obj)
+            for item in i.details:
+                obj = {
+                    "visit_id": i.visit_id,
+                    "checkIn": item.checkIn.at,
+                    "checkOut": item.checkOut.at,
+                    "assigned_client":assigned_client.name,
+                    "status":item.daily_status,
+                    "for_date":item.for_date
+                }
+                visitsArray.append(obj)
 
     return visitsArray,0
 
