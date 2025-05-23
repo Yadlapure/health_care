@@ -40,7 +40,8 @@ async def assign(admin_id:str,client_id:str,emp_id:str, from_ts:datetime,to_ts:d
         return {"message":"Incorrect Credentials"},401
     visit = await Visit.find_one({"assigned_client_id":client_id,"from_date":from_ts.date(),"to_ts":to_ts.date()})
     details = [{
-        "daily_status": VisitStatus.initiated
+        "daily_status": VisitStatus.initiated,
+        "for_date": from_ts.date()
     }]
     if visit and visit.main_status.value == VisitStatus.cancelledVisit:
         visit.assigned_emp_id = emp_id
@@ -231,16 +232,18 @@ async def get_image_urls(object_names):
         response.append(obj)
     return response,0
 
-async def unassign(client_id:str,date):
-    visit = await Visit.find_one({"assigned_client_id": client_id,"for_date":date})
+async def unassign(visit_id:str):
+    today = datetime.now()
+    visit = await Visit.find_one({"visit_id": visit_id})
     if not visit:
         return "No visit has been assigned",403
-    visit.status = VisitStatus.cancelledVisit
-    client = await get_user(client_id)
-    pract = await get_user(visit.assigned_pract_id)
-    client.assigned = False
-    pract.assigned = False
+    if visit.main_status.value == VisitStatus.initiated.value:
+        visit.main_status = VisitStatus.cancelledVisit
+    else:
+        for i in visit.details:
+            if i.for_date.date() == today.date():
+                i.daily_status = VisitStatus.checkedOut
+        visit.main_status = VisitStatus.checkedOut
+
     await visit.save()
-    await client.save()
-    await pract.save()
     return "Unassigned successfully",0

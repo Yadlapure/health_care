@@ -20,8 +20,7 @@ class Assign(BaseModel):
     to_ts:datetime
 
 class Unassign(BaseModel):
-    clientId:str
-    date:datetime
+    visit_id:str
 
 @visit_router.post("/assign")
 async def handler_assign(
@@ -96,7 +95,7 @@ async def handler_unassign(
 ):
     if curr_user["entity_type"] != UserEntity.admin.value:
         return {"error":"Not Authorized","status_code":401}
-    response, status_code = await unassign(client_id=unassign_req.clientId,date=unassign_req.date)
+    response, status_code = await unassign(visit_id=unassign_req.visit_id)
     if status_code == 0:
         return {"status_code": status_code, "data": response}
     return {"status_code": status_code, "error": response}
