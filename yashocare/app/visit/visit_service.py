@@ -70,7 +70,7 @@ async def check_in_out(
         lng:str,
         img:UploadFile = File(...)
 ):
-    date = datetime.now(tz=pytz.UTC)+timedelta(days=1)
+    date = datetime.now(tz=pytz.UTC)
     tomorrow = date+timedelta(days=1)
     extension = img.filename.split(".")[-1]
     name = str(uuid4().int)[:10]
@@ -159,7 +159,7 @@ async def update_vitals(visit_id,bloodPressure,sugar,notes):
         return "No visit assigned today",0
     if not notes:
         return "Provide notes",403
-    today = datetime.now()+timedelta(days=1)
+    today = datetime.now()
     # if prescription_images:
     #     for img in prescription_images:
     #         extension = img.filename.split(".")[-1]

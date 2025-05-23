@@ -5,6 +5,7 @@ from app.app_bundle.env_config_settings import get_settings
 from app.app_bundle.s3_utils import upload_to_s3
 from app.user.user_enum import UserEntity
 from app.user.user_model import Yasho_User, hash_password, Client, Employee
+from app.visit.visit_model import Visit
 
 
 async def get_user(user_id:str):
@@ -121,3 +122,12 @@ async def deactivate(user_id):
         return "User not found",404
     await user.delete()
     return "User deactivated successfully",0
+
+
+async def get_attendance(user_id,from_ts,to_ts):
+    visits = await Visit.find({
+        "assigned_emp_id": user_id,
+        "from_ts": {"$lte": to_ts},  # can start before or during
+        "to_ts": {"$gte": from_ts}   # can end after or during
+    })
+    return

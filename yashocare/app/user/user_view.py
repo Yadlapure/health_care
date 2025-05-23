@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional, Literal, Annotated, List
 
 from fastapi import APIRouter, Depends, UploadFile, File, Form
@@ -12,7 +13,8 @@ from app.user.user_service import (
     create_employee,
     get_all_users,
     update_role,
-    deactivate
+    deactivate,
+    get_attendance
 )
 
 user_router = APIRouter()
@@ -32,6 +34,11 @@ class ClientRegister(BaseModel):
 class RoleUpdate(BaseModel):
     user_id:str
     entity:str
+
+
+class Attendance(BaseModel):
+    from_ts:datetime
+    to_ts:datetime
 
 @user_router.post("/client-register")
 async def handler_user_register(create_req:ClientRegister):
@@ -138,6 +145,19 @@ async def handler_deactivate(
     if curr_user["entity_type"] != UserEntity.admin.value:
         return {"error":"Not Authorized","status_code":401}
     response, status_code = await deactivate(user_id)
+    if status_code == 0:
+        return {"status_code": status_code, "data": response}
+    return {"status_code": status_code, "error": response}
+
+
+@user_router.post("/attendance")
+async def handler_get_attendance(
+        att_req:Attendance,
+        curr_user: CurrentUserInfo = Depends(get_current_user),
+):
+    if curr_user["entity_type"] != UserEntity.admin.value:
+        return {"error":"Not Authorized","status_code":401}
+    response, status_code = await get_attendance(from_ts=att_req.from_ts,to_ts=att_req.to_ts)
     if status_code == 0:
         return {"status_code": status_code, "data": response}
     return {"status_code": status_code, "error": response}
