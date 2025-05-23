@@ -180,11 +180,6 @@ async def update_vitals(visit_id,bloodPressure,sugar,notes):
     return "Vitals Updated Successfully", 0
 
 async def get_visits(curr_user):
-    allowed_statuses = [
-        VisitStatus.initiated.value,
-        VisitStatus.checkedIn.value,
-        VisitStatus.checkedOut.value,
-    ]
     if curr_user["entity_type"] == UserEntity.admin.value:
         visits =await Visit.find({"assigned_admin_id":curr_user["user_id"],"main_status": {"$ne": VisitStatus.cancelledVisit.value}}).to_list()
         if not visits:
@@ -209,7 +204,7 @@ async def get_visits(curr_user):
             visitsArray.append(obj)
 
     if curr_user["entity_type"] == UserEntity.employee.value:
-        visits = await Visit.find({"assigned_emp_id":curr_user["user_id"],"main_status":VisitStatus.initiated.value}).to_list()
+        visits = await Visit.find({"assigned_emp_id":curr_user["user_id"],"main_status": {"$ne": VisitStatus.cancelledVisit.value}}).to_list()
         if not visits:
             return "No visits assigned",403
         for i in visits:
