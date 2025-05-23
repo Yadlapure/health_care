@@ -43,8 +43,6 @@ const PractitionerDetail = ({ setIsAuthenticated, setUser }) => {
 
   const [activeTab, setActiveTab] = useState("INITIATED");
 
-  console.log("visit", visit);
-
   const isSameDate = (date1, date2) => {
     const d1 = new Date(date1);
     const d2 = new Date(date2);
@@ -94,19 +92,13 @@ const PractitionerDetail = ({ setIsAuthenticated, setUser }) => {
       if (!todayDetail) {
         toast.error("No detail entry found for today.");
         return;
-      }
-
-      console.log("todayDetail", todayDetail);
-      
+      }      
 
       setVisit({ ...todayDetail });
       setVisitLocation(todayVisit);
-      console.log("Loaded daily_status:", todayDetail.daily_status);
 
       // Dashboard visibility logic
       const { daily_status, checkIn } = todayDetail;
-      console.log("daily_status", daily_status);
-      
 
       const isInit =
         todayVisit.main_status === "INITIATED" ||
@@ -229,7 +221,6 @@ const PractitionerDetail = ({ setIsAuthenticated, setUser }) => {
 
   // Handle vitals capture
   const handleVitalsSave = async (vitals) => {
-    console.log("vital",vitals);
     
     if (!visit) return;
 
@@ -239,8 +230,6 @@ const PractitionerDetail = ({ setIsAuthenticated, setUser }) => {
       sugar:vitals.sugar,
       visit_id:visitLocation.visit_id
     }
-    console.log("data",data);
-    
 
     try {
       const response = await visits.updateVitals(data);
@@ -306,8 +295,6 @@ const PractitionerDetail = ({ setIsAuthenticated, setUser }) => {
       formData.append("visit_id", visitLocation.visit_id);
 
       const response = await visits.updatecheckInOut(formData);
-      console.log("res",response);
-      
       if (response.status_code === 0) {
         await loadVisitData();
         setShowDashboard(true);
@@ -382,8 +369,6 @@ const PractitionerDetail = ({ setIsAuthenticated, setUser }) => {
     (visit.daily_status === "CHECKEDIN" || visit.daily_status === "CHECKEDOUT");
 
   const handleTabChange = (value: string) => {
-    console.log("value",value);
-    
     // Only allow tab changes if the conditions are met
     if (value === "INITIATED") {
       toast.error("Already Checked-in");

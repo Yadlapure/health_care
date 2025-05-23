@@ -205,7 +205,9 @@ export const EmployeeTable = () => {
               employees.map((emp, index) => (
                 <TableRow key={index}>
                   <TableCell>{emp.name}</TableCell>
-                  <TableCell>{emp.address}</TableCell>
+                  <TableCell className="max-w-[130px] whitespace-pre-wrap break-words">
+                    {emp.address}
+                  </TableCell>
                   <TableCell>{emp.mobile}</TableCell>
                   <TableCell>
                     <span

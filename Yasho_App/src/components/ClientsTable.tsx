@@ -99,7 +99,9 @@ export const ClientsTable = () => {
                       <span>{user.name}</span>
                     </div>
                   </TableCell>
-                  <TableCell>{user.email}</TableCell>
+                  <TableCell className="max-w-[130px] whitespace-pre-wrap break-words">
+                    {user.address}
+                  </TableCell>
                   <TableCell>{user.mobile}</TableCell>
                   <TableCell>
                     <span

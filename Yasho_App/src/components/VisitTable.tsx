@@ -14,7 +14,6 @@ import { FaCalendar, FaSearch, FaUser } from "react-icons/fa";
 import auth from "../api/user/auth";
 import visits from "../api/visits/visits";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
-import { formatDate } from "../utils/formatDate";
 import {
   Pagination,
   PaginationContent,
@@ -31,9 +30,9 @@ export const VisitTable = () => {
   const [visitsData, setVisitsData] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedVisit, setSelectedVisit] = useState(null);
-  const [nextVisit, setNextVisit] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const visitsPerPage = 10;
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -62,33 +61,10 @@ export const VisitTable = () => {
     fetchVisits();
   }, []);
 
-  const filteredClients = clients.filter(
-    (client) =>
-      client.assigned &&
-      (client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        client.email.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
-
   const openVitalsModal = (visit) => {
     setSelectedVisit(visit);
     setModalOpen(true);
 
-    // Find the next visit for the client
-    const clientVisits = visitsData.filter(
-      (visitData) => visitData.assigned_client_id === visit.assigned_client_id
-    );
-
-    const sortedVisits = clientVisits.sort(
-      (a, b) => new Date(a.for_date) - new Date(b.for_date)
-    );
-
-    const selectedVisitIndex = sortedVisits.findIndex(
-      (v) => v.visit_id === visit.visit_id
-    );
-
-    // Find the next visit
-    const nextVisit = sortedVisits[selectedVisitIndex + 1];
-    setNextVisit(nextVisit || null);
   };
 
   // Pagination logic
@@ -118,7 +94,6 @@ export const VisitTable = () => {
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
-
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -145,9 +120,6 @@ export const VisitTable = () => {
               currentVisits.map((visit) => {
                 const client = clients.find(
                   (client) => client.user_id === visit.assigned_client_id
-                );
-                const practitioner = practitioners.find(
-                  (p) => p.user_id === visit.assigned_pract_id
                 );
 
                 return (
@@ -192,7 +164,7 @@ export const VisitTable = () => {
                     </TableCell>
 
                     <TableCell>
-                      <span>{visit.main_status || "Unknown"}</span>
+                      <span>{visit.main_status || ""}</span>
                     </TableCell>
 
                     <TableCell className="text-right">
@@ -216,7 +188,6 @@ export const VisitTable = () => {
           </TableBody>
         </Table>
       </div>
-
       {/* Pagination Controls */}
       <Pagination>
         <PaginationContent>
@@ -240,7 +211,6 @@ export const VisitTable = () => {
           />
         </PaginationContent>
       </Pagination>
-
       {/* Modal for visit details */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent>
@@ -249,80 +219,70 @@ export const VisitTable = () => {
           </DialogHeader>
 
           {selectedVisit ? (
-            <div className="space-y-2 text-sm">
+            <div className="space-y-4 text-sm">
+              {/* Show visit date range */}
               <div>
-                <strong>Status:</strong> {selectedVisit.status ?? "Unknown"}
+                <strong>Visit Period:</strong>{" "}
+                {selectedVisit.from_ts && selectedVisit.to_ts
+                  ? `${new Date(
+                      selectedVisit.from_ts
+                    ).toLocaleDateString()} - ${new Date(
+                      selectedVisit.to_ts
+                    ).toLocaleDateString()}`
+                  : "N/A"}
               </div>
-              <div>
-                <strong>Check-In Time:</strong>{" "}
-                {selectedVisit?.checkIn?.at
-                  ? formatDate(selectedVisit.checkIn.at)
-                  : "Not checked in"}
-              </div>
-              <div>
-                <strong>Check-Out Time:</strong>{" "}
-                {selectedVisit?.checkOut?.at
-                  ? formatDate(selectedVisit.checkOut.at)
-                  : "Not checked out"}
-              </div>
-              <div>
-                <strong>Blood Pressure:</strong>{" "}
-                {selectedVisit.vitals?.bloodPressure ?? "N/A"}
-              </div>
-              <div>
-                <strong>Sugar:</strong> {selectedVisit.vitals?.sugar ?? "N/A"}
-              </div>
-              <div>
-                <strong>Notes:</strong>{" "}
-                {selectedVisit.vitals?.notes?.trim() || "No notes provided"}
-              </div>
-              {selectedVisit.vitals?.prescription_images?.length > 0 && (
-                <div>
-                  <strong>Prescription Images:</strong>
-                  <ul className="list-disc list-inside mt-1">
-                    {selectedVisit.vitals.prescription_images.map(
-                      (img, idx) => (
-                        <li key={idx}>
-                          <a
-                            href={img}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 underline"
-                          >
-                            View Image {idx + 1}
-                          </a>
-                        </li>
-                      )
-                    )}
-                  </ul>
-                </div>
-              )}
+
+              {/* Filter details to only those within visit date range */}
+              {selectedVisit.details
+                .filter((detail) => {
+                  const detailDate = new Date(detail.for_date);
+                  const fromDate = new Date(selectedVisit.from_ts);
+                  const toDate = new Date(selectedVisit.to_ts);
+
+                  // Normalize time for comparison
+                  detailDate.setHours(0, 0, 0, 0);
+                  fromDate.setHours(0, 0, 0, 0);
+                  toDate.setHours(0, 0, 0, 0);
+
+                  return detailDate >= fromDate && detailDate <= toDate;
+                })
+                .map((detail, index) => (
+                  <div key={index} className="border-t pt-2">
+                    <h4 className="font-semibold mb-1">
+                      Date: {new Date(detail.for_date).toLocaleDateString()}
+                    </h4>
+                    <div>
+                      <strong>Check-In Time:</strong>{" "}
+                      {detail.checkIn?.at
+                        ? new Date(detail.checkIn.at).toLocaleTimeString()
+                        : "N/A"}
+                    </div>
+                    <div>
+                      <strong>Check-Out Time:</strong>{" "}
+                      {detail.checkOut?.at
+                        ? new Date(detail.checkOut.at).toLocaleTimeString()
+                        : "N/A"}
+                    </div>
+
+                    <div>
+                      <strong>Sugar:</strong>{" "}
+                      {detail.vitals?.sugar
+                        ? `${detail.vitals.sugar}`
+                        : "N/A"}
+                    </div>
+                    <div>
+                      <strong>Blood Pressure:</strong>{" "}
+                      {detail.vitals?.bloodPressure || "N/A"}
+                    </div>
+                    <div>
+                      <strong>Notes:</strong>{" "}
+                      {detail.vitals?.notes ? `${detail.vitals.notes}` : "N/A"}
+                    </div>
+                  </div>
+                ))}
             </div>
           ) : (
             <p>No visit data found.</p>
-          )}
-
-          {nextVisit ? (
-            <div className="mt-4">
-              <strong>Next Visit:</strong>
-              <div>
-                <strong>Scheduled Date:</strong>{" "}
-                {formatDate(nextVisit.for_date)}
-              </div>
-              <div>
-                <strong>Status:</strong> {nextVisit.status}
-              </div>
-              <div>
-                <strong>Assigned To:</strong>{" "}
-                {practitioners.find(
-                  (p) => p.user_id === nextVisit.assigned_pract_id
-                )?.name || "Not assigned"}
-              </div>
-            </div>
-          ) : (
-            <div className="mt-4">
-              <strong>No upcoming visits scheduled.</strong>
-            </div>
           )}
         </DialogContent>
       </Dialog>
