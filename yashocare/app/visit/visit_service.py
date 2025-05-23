@@ -204,7 +204,7 @@ async def get_visits(curr_user):
             visitsArray.append(obj)
 
     if curr_user["entity_type"] == UserEntity.employee.value:
-        visits = await Visit.find({"assigned_emp_id":curr_user["user_id"],"status":VisitStatus.initiated.value}).to_list()
+        visits = await Visit.find({"assigned_emp_id":curr_user["user_id"],"main_status":VisitStatus.initiated.value}).to_list()
         if not visits:
             return "No visits assigned",403
         for i in visits:
