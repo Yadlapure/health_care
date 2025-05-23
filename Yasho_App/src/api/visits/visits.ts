@@ -54,14 +54,17 @@ const updatecheckInOut = async (formData) => {
   }
 };
 
-const assignPractToClient = async (clientId,practId,date) => {
+const assignPractToClient = async (clientId, empId, from_ts, to_ts,lat,lng) => {
   try {
     const response = await apiClient.post(
       `${PreApi.assign}`,
       {
         clientId,
-        practId,
-        date,
+        empId,
+        from_ts,
+        to_ts,
+        lat,
+        lng,
       },
       {
         headers: {
@@ -76,13 +79,12 @@ const assignPractToClient = async (clientId,practId,date) => {
   }
 };
 
-const unAssignPractToClient = async (clientId, date) => {
+const unAssignPractToClient = async (visit_id) => {
   try {
     const response = await apiClient.post(
       `${PreApi.UnAssign}`,
       {
-        clientId,
-        date,
+        visit_id,
       },
       {
         headers: {

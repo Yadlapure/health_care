@@ -5,7 +5,7 @@ import { formatDate } from "../utils/formatDate";
 
 const PractDashboard = ({ visit, onClick }) => {
   const getStatusInfo = () => {
-    switch (visit.status) {
+    switch (visit.daily_status) {
       case "INITIATED":
         return {
           icon: <FaClock className="h-6 w-6 text-healthcare-warning" />,
@@ -18,7 +18,7 @@ const PractDashboard = ({ visit, onClick }) => {
           icon: <FaCheck className="h-6 w-6 text-healthcare-success" />,
           title: "Visit Complete",
           description: visit.checkOut
-            ? formatDate(visit?.checkOut)
+            ? formatDate(visit?.checkOut.at)
             : "Time not recorded",
           color: "bg-healthcare-danger/20 text-healthcare-gray",
         };
@@ -40,7 +40,7 @@ const PractDashboard = ({ visit, onClick }) => {
       onClick={onClick}
     >
       <CardContent className="p-4">
-        <h1 className="mb-2">Client: {visit.assigned_client}</h1>
+        {/* <h1 className="mb-2">Client: {visit.assigned_client}</h1> */}
         <div className="flex items-center">
           <div className="mr-3">{info.icon}</div>
           <div>
@@ -49,7 +49,7 @@ const PractDashboard = ({ visit, onClick }) => {
           </div>
           <div className="ml-auto">
             <span className={`text-sm px-2 py-1 rounded-full ${info.color}`}>
-              {visit.status}
+              {visit.daily_status}
             </span>
           </div>
         </div>

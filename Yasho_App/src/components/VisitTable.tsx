@@ -45,7 +45,7 @@ export const VisitTable = () => {
 
       const users = fetchUsers.data;
       setClients(users.filter((u) => u.entity_type === "client"));
-      setPractitioners(users.filter((u) => u.entity_type === "pract"));
+      setPractitioners(users.filter((u) => u.entity_type === "employee"));
     };
 
     const fetchVisits = async () => {
@@ -160,24 +160,39 @@ export const VisitTable = () => {
                       <div className="flex items-center">
                         <FaCalendar className="h-4 w-4 mr-2 text-muted-foreground" />
                         <span>
-                          {new Date(visit.for_date).toLocaleDateString()}
+                          {visit.from_ts && visit.to_ts
+                            ? `${new Date(
+                                visit.from_ts
+                              ).toLocaleDateString()} - ${new Date(
+                                visit.to_ts
+                              ).toLocaleDateString()}`
+                            : "N/A"}
                         </span>
                       </div>
                     </TableCell>
 
                     <TableCell>
-                      {practitioner ? (
-                        <div className="flex items-center">
-                          <FaUser className="h-4 w-4 mr-2 text-muted-foreground" />
-                          <span>{practitioner.name}</span>
-                        </div>
-                      ) : (
-                        "Not assigned"
-                      )}
+                      {(() => {
+                        const assignedId =
+                          visit.assigned_pract_id || visit.assigned_emp_id;
+                        const assignedPerson = practitioners.find(
+                          (p) => p.user_id === assignedId
+                        );
+                        return assignedPerson ? (
+                          <div className="flex items-center">
+                            <FaUser className="h-4 w-4 mr-2 text-muted-foreground" />
+                            <span>{assignedPerson.name}</span>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">
+                            Not assigned
+                          </span>
+                        );
+                      })()}
                     </TableCell>
 
                     <TableCell>
-                      <span>{visit.status}</span>
+                      <span>{visit.main_status || "Unknown"}</span>
                     </TableCell>
 
                     <TableCell className="text-right">

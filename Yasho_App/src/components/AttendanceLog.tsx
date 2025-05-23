@@ -149,8 +149,12 @@ const AttendanceLog: React.FC = () => {
               <FaCalendar className="w-4 h-4" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent>
-            <Calendar mode="single" selected={selectedDate} onSelect={handleDateChange} />
+          <PopoverContent className="mt-2 border p-2 rounded shadow-md z-10 bg-white max-w-[350px]">
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={handleDateChange}
+            />
           </PopoverContent>
         </Popover>
 
@@ -192,9 +196,14 @@ const AttendanceLog: React.FC = () => {
         {logs.map((log) => {
           const { color, icon } = getStatusInfo(log.status);
           return (
-            <div key={log.id} className="grid grid-cols-6 items-center gap-1 border-b px-2 py-2 text-[10px] sm:text-sm">
+            <div
+              key={log.id}
+              className="grid grid-cols-6 items-center gap-1 border-b px-2 py-2 text-[10px] sm:text-sm"
+            >
               <div className="font-medium">{log.date}</div>
-              <div className="truncate text-green-700">{log.location || "NA"}</div>
+              <div className="truncate text-green-700">
+                {log.location || "NA"}
+              </div>
               <div className="text-center">{log.inTime || "NA"}</div>
               <div className="text-center">{log.outTime || "NA"}</div>
               <div className="flex items-center" style={{ color }}>
@@ -227,7 +236,10 @@ const AttendanceLog: React.FC = () => {
               placeholder="Enter reason here..."
             />
             <div className="flex justify-end space-x-2">
-              <Button variant="secondary" onClick={() => setIsDialogOpen(false)}>
+              <Button
+                variant="secondary"
+                onClick={() => setIsDialogOpen(false)}
+              >
                 Cancel
               </Button>
               <Button className="bg-[#00847e] text-white" onClick={saveReason}>

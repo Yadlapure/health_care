@@ -22,7 +22,7 @@ const AdminDashboard = ({  setIsAuthenticated, setUser }) => {
         setIsAuthenticated={setIsAuthenticated}
         setUser={setUser}
       />
-      <div className="py-4 w-full max-w-4xl m-auto ">
+      <div className="py-4 w-full max-w-screen-2xl mx-auto px-4">
         <Tabs defaultValue="assignments">
           <TabsList className="mb-4 flex overflow-x-auto no-scrollbar">
             <TabsTrigger className="min-w-[160px]" value="assignments">

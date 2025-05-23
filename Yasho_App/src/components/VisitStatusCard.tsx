@@ -6,7 +6,7 @@ import { formatDate } from "../utils/formatDate";
 
 const VisitStatusCard = ({ visit }) => {
   const getStatusInfo = () => {
-    switch (visit.status) {
+    switch (visit.daily_status) {
       case "INITIATED":
         return {
           icon: <FaClock className="h-6 w-6 text-healthcare-warning" />,
@@ -19,7 +19,7 @@ const VisitStatusCard = ({ visit }) => {
           icon: <FaCheck className="h-6 w-6 text-healthcare-success" />,
           title: "Check In Complete",
           description: visit.checkIn
-            ? formatDate(visit?.checkIn)
+            ? formatDate(visit?.checkIn.at)
             : "Time not recorded",
           color: "bg-healthcare-success/20 text-healthcare-success",
         };
@@ -28,7 +28,7 @@ const VisitStatusCard = ({ visit }) => {
           icon: <FaCheck className="h-6 w-6 text-healthcare-success" />,
           title: "Vital updated",
           description: visit.checkIn
-            ? formatDate(visit?.checkIn)
+            ? formatDate(visit?.checkIn.at)
             : "Time not recorded",
           color: "bg-healthcare-success/20 text-healthcare-success",
         };
@@ -37,7 +37,7 @@ const VisitStatusCard = ({ visit }) => {
           icon: <FaCheck className="h-6 w-6 text-healthcare-success" />,
           title: "Visit Complete",
           description: visit.checkOut
-            ? formatDate(visit?.checkOut)
+            ? formatDate(visit?.checkOut.at)
             : "Time not recorded",
           color: "bg-healthcare-success/20 text-healthcare-success",
         };
@@ -64,7 +64,7 @@ const VisitStatusCard = ({ visit }) => {
           </div>
           <div className="ml-auto">
             <span className={`text-sm px-2 py-1 rounded-full ${info.color}`}>
-              {visit.status}
+              {visit.daily_status}
             </span>
           </div>
         </div>

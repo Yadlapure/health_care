@@ -92,7 +92,7 @@ const App = () => {
             }
           />
           <Route
-            path="/pract"
+            path="/employee"
             element={
               <ProtectedRoute
                 isAuthenticated={isAuthenticated}

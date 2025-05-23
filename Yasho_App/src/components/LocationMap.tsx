@@ -35,21 +35,23 @@ const LocationMap = ({
     try {
       setLoading(true);
       const location = await GeolocationService.getCurrentPosition(); 
+      console.log("location",location);
+      
            
       setCurrentLocation(location);
 
       // Check if within range
-    //   const withinRange = GeolocationService.isWithinRange(
-    //     location,
-    //     patientLocation,
-    //     200 // 200 meters
-    //   );
+      const withinRange = GeolocationService.isWithinRange(
+        location,
+        patientLocation,
+        200
+      );
 
-    //   setIsWithinRange(withinRange);
+      setIsWithinRange(withinRange);
 
-    //   if (!withinRange) {
-    //     toast.error("You are not within 200 meters of the patient location.");
-    //   }
+      if (!withinRange) {
+        toast.error("You are not within 200 meters of the patient location.");
+      }
     } catch (error) {
       console.error("Error getting location:", error);
       toast.error("Failed to get your current location.");
@@ -150,7 +152,7 @@ const LocationMap = ({
         </div>
 
         <div className="p-4 space-y-2">
-          <Button
+          {/* <Button
             onClick={updateCurrentLocation}
             variant="outline"
             className="w-full flex items-center justify-center"
@@ -158,7 +160,7 @@ const LocationMap = ({
           >
             <FaMapMarkerAlt className="mr-2 h-4 w-4" />
             {loading ? "Getting Location..." : "Update My Location"}
-          </Button>
+          </Button> */}
 
           <Button
             onClick={handleCaptureLocation}

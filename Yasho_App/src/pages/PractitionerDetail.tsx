@@ -39,59 +39,122 @@ const PractitionerDetail = ({ setIsAuthenticated, setUser }) => {
   const [capturedOutLocation, setCapturedOutLocation] = useState(null);
   const [capturedOutSelfie, setCapturedOutSelfie] = useState(null);
   const [showDashboard, setShowDashboard] = useState(false);
+  const [ visitLocation,setVisitLocation] = useState(null)
 
   const [activeTab, setActiveTab] = useState("INITIATED");
 
+  console.log("visit", visit);
+
+  const isSameDate = (date1, date2) => {
+    const d1 = new Date(date1);
+    const d2 = new Date(date2);
+    return (
+      d1.getFullYear() === d2.getFullYear() &&
+      d1.getMonth() === d2.getMonth() &&
+      d1.getDate() === d2.getDate()
+    );
+  };
+
+  const loadVisitData = async () => {
+    try {
+      setLoading(true);
+
+      const visitData = await visits.getVisits();
+      if (visitData.status_code !== 0) {
+        toast.error(visitData.error);
+        return;
+      }
+
+      const today = new Date();
+
+      const todayVisit = visitData.data.find((visit) => {
+        const fromDate = new Date(visit.from_ts);
+        const toDate = new Date(visit.to_ts);
+
+        const isInRange =
+          today >= new Date(fromDate.setHours(0, 0, 0, 0)) &&
+          today <= new Date(toDate.setHours(23, 59, 59, 999));
+
+        if (!isInRange) return false;
+
+        return visit.details?.some((detail) =>
+          isSameDate(detail.for_date, today)
+        );
+      });
+
+      if (!todayVisit) {
+        toast.error("No visit scheduled for today.");
+        return;
+      }
+
+      const todayDetail = todayVisit.details.find((detail) =>
+        isSameDate(detail.for_date, today)
+      );
+
+      if (!todayDetail) {
+        toast.error("No detail entry found for today.");
+        return;
+      }
+
+      console.log("todayDetail", todayDetail);
+      
+
+      setVisit({ ...todayDetail });
+      setVisitLocation(todayVisit);
+      console.log("Loaded daily_status:", todayDetail.daily_status);
+
+      // Dashboard visibility logic
+      const { daily_status, checkIn } = todayDetail;
+      console.log("daily_status", daily_status);
+      
+
+      const isInit =
+        todayVisit.main_status === "INITIATED" ||
+        todayVisit.main_status === "CHECKEDIN";
+      const hasNotCapturedAnything = !checkIn?.lat && !checkIn?.img;
+
+      if (isInit && hasNotCapturedAnything) {
+        setShowDashboard(true);
+      }
+
+      if (daily_status === "CHECKEDIN") {
+        setInLocationCaptured(true);
+        setInSelfieCaptured(true);
+      }
+
+      if (daily_status === "VITALUPDATE") {
+        setOutLocationCaptured(!!todayDetail?.checkOut?.lat);
+        setOutSelfieCaptured(!!todayDetail?.checkOut?.img);
+        setCapturedOutLocation(
+          todayDetail?.checkOut?.lat && {
+            latitude: todayDetail.checkOut.lat,
+            longitude: todayDetail.checkOut.lng,
+          }
+        );
+        setCapturedOutSelfie(todayDetail?.checkOut?.img || null);
+      }
+      
+
+      if (daily_status === "CHECKEDOUT") {
+        setShowDashboard(true);
+      }
+
+      setActiveTab(daily_status);
+    } catch (error) {
+      console.error("Error loading visit:", error);
+      toast.error("Failed to load visit data");
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  
   // Load visit data
   useEffect(() => {
-    const loadVisitData = async () => {
-      try {
-        setLoading(true);
-
-        const visitData = await visits.getVisits();
-        if (visitData.status_code !== 0) {
-          toast.error(visitData.error);
-          return;
-        }
-
-        const firstVisit = visitData.data[0];
-        setVisit(firstVisit);
-
-        // Determine dashboard visibility
-        const isInit = firstVisit.status === "INITIATED";
-        const hasNotCapturedAnything =
-          !firstVisit.inLocation && !firstVisit.inSelfie;
-
-        if (isInit && hasNotCapturedAnything) {
-          setShowDashboard(true); // Show dashboard card
-        }
-
-        // Continue as normal if data is already filled
-        if (firstVisit.status === "CHECKEDIN") {
-          setInLocationCaptured(true);
-          setInSelfieCaptured(true);
-        }
-
-        if (firstVisit.status === "VITALUPDATE") {
-          setOutLocationCaptured(false);
-          setOutSelfieCaptured(false);
-        }
-        if (firstVisit.status === "CHECKEDOUT") {
-          setShowDashboard(true);
-        }
-
-        // Default active tab logic
-        setActiveTab(firstVisit.status);
-      } catch (error) {
-        console.error("Error loading visit:", error);
-        toast.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadVisitData();
   }, []);
+
+  
 
   // Handle location capture for check-in
   const handleInLocationCapture = (location) => {
@@ -131,15 +194,24 @@ const PractitionerDetail = ({ setIsAuthenticated, setUser }) => {
 
     try {
       const selfieFile = base64ToFile(capturedInSelfie);
-
       const formData = new FormData();
       formData.append("lat", capturedInLocation.latitude.toString());
       formData.append("lng", capturedInLocation.longitude.toString());
       formData.append("img", selfieFile);
+      formData.append("visit_id", visitLocation.visit_id);
 
       const response = await visits.updatecheckInOut(formData);
       if (response.status_code === 0) {
-        setVisit(response.data);
+        await loadVisitData()
+        // Use functional update to ensure you're working with the latest state
+        setVisit((prevVisit) => {
+          const updatedVisit = {
+            ...prevVisit,
+            inLocation: capturedInLocation,
+            inSelfie: capturedInSelfie,
+          };
+          return updatedVisit;
+        });
         setActiveTab("CHECKEDIN");
         setInLocationCaptured(true);
         setInSelfieCaptured(true);
@@ -153,18 +225,34 @@ const PractitionerDetail = ({ setIsAuthenticated, setUser }) => {
       toast.error("Failed to complete check-in");
     }
   };
+  
 
   // Handle vitals capture
   const handleVitalsSave = async (vitals) => {
+    console.log("vital",vitals);
+    
     if (!visit) return;
 
-    try {
-      const response = await visits.updateVitals(vitals);
-      setVisit(response.data);
-      setActiveTab("VITALUPDATE");
-      setVitalsCaptured(true);
+    const data = {
+      bloodPressure:vitals.bloodPressure,
+      notes:vitals.notes,
+      sugar:vitals.sugar,
+      visit_id:visitLocation.visit_id
+    }
+    console.log("data",data);
+    
 
-      toast.success("Patient vitals saved");
+    try {
+      const response = await visits.updateVitals(data);
+      if (response.status_code === 0) {
+        await loadVisitData();
+        // setVisit(response.data);
+        setActiveTab("VITALUPDATE");
+        setVitalsCaptured(true);
+
+        toast.success("Patient vitals saved");
+      }
+      
     } catch (error) {
       console.error("Error saving vitals:", error);
       toast.error("Failed to save vitals");
@@ -215,10 +303,13 @@ const PractitionerDetail = ({ setIsAuthenticated, setUser }) => {
       formData.append("lat", capturedOutLocation.latitude.toString());
       formData.append("lng", capturedOutLocation.longitude.toString());
       formData.append("img", selfieFile);
+      formData.append("visit_id", visitLocation.visit_id);
 
       const response = await visits.updatecheckInOut(formData);
+      console.log("res",response);
+      
       if (response.status_code === 0) {
-        setVisit(response.data);
+        await loadVisitData();
         setShowDashboard(true);
         toast.success("Check-out completed successfully!");
         setConfirmDialogOpen(false);
@@ -264,27 +355,35 @@ const PractitionerDetail = ({ setIsAuthenticated, setUser }) => {
 
   // Check if check-in is ready
   const isCheckInReady =
-    inLocationCaptured && inSelfieCaptured && visit.status === "INITIATED";
+    inLocationCaptured &&
+    inSelfieCaptured &&
+    visit.daily_status === "INITIATED";
 
   // Check if check-out is ready
   const isCheckOutReady =
-    visit.status === "VITALUPDATE" && outLocationCaptured && outSelfieCaptured;
+    visit.daily_status === "VITALUPDATE" &&
+    outLocationCaptured &&
+    outSelfieCaptured;
 
   // Check visit status to show appropriate content
   const showCheckInContent = true;
-  const showVitalsContent = visit.status === "CHECKEDIN";
-  const showCheckOutContent = visit.status === "VITALUPDATE";
-  const isVisitComplete = visit.status === "CHECKEDOUT";
+  const showVitalsContent = visit.daily_status === "CHECKEDIN";
+  const showCheckOutContent = visit.daily_status === "VITALUPDATE";
+  const isVisitComplete = visit.daily_status === "CHECKEDOUT";
 
   // Determine which tabs are enabled
   const isAssessmentTabEnabled =
-    inLocationCaptured && inSelfieCaptured && visit.status === "INITIATED";
+    inLocationCaptured &&
+    inSelfieCaptured &&
+    visit.daily_status === "INITIATED";
   const isCheckOutTabEnabled =
     isAssessmentTabEnabled &&
     vitalsCaptured &&
-    (visit.status === "CHECKEDIN" || visit.status === "CHECKEDOUT");
+    (visit.daily_status === "CHECKEDIN" || visit.daily_status === "CHECKEDOUT");
 
   const handleTabChange = (value: string) => {
+    console.log("value",value);
+    
     // Only allow tab changes if the conditions are met
     if (value === "INITIATED") {
       toast.error("Already Checked-in");
@@ -310,9 +409,10 @@ const PractitionerDetail = ({ setIsAuthenticated, setUser }) => {
         <PractDashboard
           visit={visit}
           onClick={() =>
-            visit.status === "INITIATED" && setShowDashboard(false)
+            visit.daily_status === "INITIATED" && setShowDashboard(false)
           }
         />
+        <AttendanceLog />
       </div>
     );
   }
@@ -321,7 +421,7 @@ const PractitionerDetail = ({ setIsAuthenticated, setUser }) => {
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 pb-20">
       <Header
         title={`YOUR VISIT`}
-        showBack={visit.status === "INITIATED" ? true : false}
+        showBack={visit.daily_status === "INITIATED" ? true : false}
       />
       <div className="p-4 max-w-md mx-auto">
         <VisitStatusCard visit={visit} />
@@ -342,10 +442,10 @@ const PractitionerDetail = ({ setIsAuthenticated, setUser }) => {
               disabled={!isAssessmentTabEnabled}
             >
               <FaStethoscope className="h-4 w-4" />
-              <span className="hidden sm:inline">Assessment</span>
+              <span className="hidden sm:inline">Vitals</span>
             </TabsTrigger>
             <TabsTrigger
-              value="CHECKEDOUT"
+              value="VITALUPDATE"
               className="flex items-center gap-1"
               disabled={!isCheckOutTabEnabled}
             >
@@ -359,22 +459,22 @@ const PractitionerDetail = ({ setIsAuthenticated, setUser }) => {
             {showCheckInContent && (
               <div className="space-y-4">
                 <LocationMap
-                  // patientLocation={"patient.coordinates"}
-                  // userLocation={visit.inLocation}
+                  // patientLocation={visit.location}
+                  userLocation={visitLocation.inLocation}
                   patientLocation={{
-                    latitude: 12.8754709,
-                    longitude: 77.6127866,
+                    latitude: visitLocation.location.lat,
+                    longitude: visitLocation.location.lng,
                   }}
-                  userLocation={{ latitude: 12.8754709, longitude: 77.6127866 }}
+                  // userLocation={{ latitude: 12.8754709, longitude: 77.6127866 }}
                   onLocationCapture={handleInLocationCapture}
-                  disabled={visit.status !== "INITIATED"}
+                  disabled={visit.daily_status !== "INITIATED"}
                 />
 
                 {capturedInLocation && (
                   <SelfieCapture
                     title="Check-In Verification"
                     onCapture={handleInSelfieCapture}
-                    disabled={visit.status !== "INITIATED"}
+                    disabled={visit.daily_status !== "INITIATED"}
                   />
                 )}
 
@@ -410,13 +510,11 @@ const PractitionerDetail = ({ setIsAuthenticated, setUser }) => {
             {showCheckOutContent && (
               <div className="space-y-4">
                 <LocationMap
-                  // patientLocation={patient.coordinates}
-                  // userLocation={visit.outLocation}
                   patientLocation={{
-                    latitude: 12.8754709,
-                    longitude: 77.6127866,
+                    latitude: visitLocation.location.lat,
+                    longitude: visitLocation.location.lng,
                   }}
-                  userLocation={{ latitude: 12.8754709, longitude: 77.6127866 }}
+                  userLocation={visitLocation.inLocation}
                   onLocationCapture={handleOutLocationCapture}
                   disabled={isVisitComplete}
                 />

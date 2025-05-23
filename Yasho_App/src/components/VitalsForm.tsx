@@ -13,7 +13,7 @@ const defaultVitals = {
   bloodPressure: "",
   sugar: "",
   notes: "",
-  prescription_images:[]
+  // prescription_images:[]
 };
 
 const VitalsForm = ({
@@ -24,29 +24,29 @@ const VitalsForm = ({
   initialPrescription,
 }) => {
   const [vitals, setVitals] = useState(initialVitals);
-  const [prescription, setPrescription] = useState(initialPrescription);
-  const [prescriptionImage, setPrescriptionImage] = useState<
-    string | undefined
-  >(initialImage);
-  const [loading, setLoading] = useState(false);
+  // const [prescription, setPrescription] = useState(initialPrescription);
+  // const [prescriptionImage, setPrescriptionImage] = useState<
+  //   string | undefined
+  // >(initialImage);
+  // const [loading, setLoading] = useState(false);
 
-  const handleCapturePrescriptionImage = async () => {
-    try {
-      setLoading(true);
-      const imageData = await CameraService.takeSelfie();
-      setPrescriptionImage(imageData);
-      toast.success("Prescription image captured successfully!");
-    } catch (error) {
-      console.error("Error capturing image:", error);
-      toast.error("Failed to capture image. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // const handleCapturePrescriptionImage = async () => {
+  //   try {
+  //     setLoading(true);
+  //     const imageData = await CameraService.takeSelfie();
+  //     setPrescriptionImage(imageData);
+  //     toast.success("Prescription image captured successfully!");
+  //   } catch (error) {
+  //     console.error("Error capturing image:", error);
+  //     toast.error("Failed to capture image. Please try again.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
-  const handleRemoveImage = () => {
-    setPrescriptionImage(undefined);
-  };
+  // const handleRemoveImage = () => {
+  //   setPrescriptionImage(undefined);
+  // };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -155,7 +155,7 @@ const VitalsForm = ({
                 required
               />
             </div>
-            <Card className="overflow-hidden">
+            {/* <Card className="overflow-hidden">
               <CardContent className="p-4">
                 <div className="space-y-4">
                   <div className="space-y-2">
@@ -193,7 +193,7 @@ const VitalsForm = ({
                   </div>
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
 
             {!disabled && (
               <Button
