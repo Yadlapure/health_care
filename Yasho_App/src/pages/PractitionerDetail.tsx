@@ -22,7 +22,7 @@ import PractDashboard from "../components/PractDashboard";
 import AttendanceLog from "../components/AttendanceLog";
 
 
-const PractitionerDetail = ({ setIsAuthenticated, setUser }) => {
+const PractitionerDetail = ({ setIsAuthenticated, setUser,user }) => {
   const navigate = useNavigate();
 
   const [visit, setVisit] = useState(null);
@@ -334,7 +334,7 @@ const PractitionerDetail = ({ setIsAuthenticated, setUser }) => {
           <p className="mb-4">The requested visit could not be found.</p>
         </div>
         <div className="p-4">
-          <AttendanceLog />
+          <AttendanceLog user={user && user.data.profile} />
         </div>
       </div>
     );
@@ -397,7 +397,7 @@ const PractitionerDetail = ({ setIsAuthenticated, setUser }) => {
             visit.daily_status === "INITIATED" && setShowDashboard(false)
           }
         />
-        <AttendanceLog />
+        <AttendanceLog user={user && user.data.profile} />
       </div>
     );
   }

@@ -102,6 +102,7 @@ const App = () => {
                 <PractitionerDetail
                   setIsAuthenticated={setIsAuthenticated}
                   setUser={setUser}
+                  user={user}
                 />
               </ProtectedRoute>
             }

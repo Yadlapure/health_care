@@ -7,7 +7,8 @@ const PreApi = {
   register: "/api/v1/user/register",
   getAllUsers: "/api/v1/user/allUsers",
   updateRole: "/api/v1/user/role-update",
-  registerEmployee:"/api/v1/user/employee-register"
+  registerEmployee: "/api/v1/user/employee-register",
+  getAttendance: "/api/v1/user/attendance",
 };
 
 const login = async (mobile:any, password:any) => {
@@ -103,6 +104,22 @@ const registerEmployee = async (formData:any) => {
   }
 };
 
+const getAttendance = async (user_id:any, from_ts:any, to_ts:any) => {
+  try {
+    const response = await apiClient.post(
+      `${PreApi.getAttendance}`,
+      { user_id, from_ts, to_ts },
+      {
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching image URLs:", error);
+    return null;
+  }
+};
+
 export default {
   login,
   getMe,
@@ -110,5 +127,6 @@ export default {
   getAllUsers,
   updateRole,
   registerEmployee,
+  getAttendance,
 };
   

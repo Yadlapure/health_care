@@ -12,6 +12,7 @@ import { PatientAssignmentTable } from "../components/PatientAssignmentTable";
 import Header from "../components/Header";
 import { VisitTable } from "../components/VisitTable";
 import { EmployeeTable } from "../components/EmployeeTable";
+import EmployeesAttendanceLog from "../components/EmployeesAttendanceLog";
 
 const AdminDashboard = ({  setIsAuthenticated, setUser }) => {
   return (
@@ -24,18 +25,21 @@ const AdminDashboard = ({  setIsAuthenticated, setUser }) => {
       />
       <div className="py-4 w-full max-w-screen-2xl mx-auto px-4">
         <Tabs defaultValue="assignments">
-          <TabsList className="mb-4 flex overflow-x-auto no-scrollbar">
-            <TabsTrigger className="min-w-[160px]" value="assignments">
+          <TabsList className="mb-4 flex overflow-x-auto whitespace-nowrap no-scrollbar">
+            <TabsTrigger className="min-w-[140px]" value="assignments">
               Patient Assignments
             </TabsTrigger>
             <TabsTrigger className="min-w-[80px]" value="visits">
               Visits
             </TabsTrigger>
-            <TabsTrigger className="min-w-[80px]" value="clients">
+            <TabsTrigger className="min-w-[60px]" value="clients">
               Clients
             </TabsTrigger>
             <TabsTrigger className="min-w-[80px]" value="employees">
               Employees
+            </TabsTrigger>
+            <TabsTrigger className="min-w-[100px]" value="attendance">
+              Attendance
             </TabsTrigger>
           </TabsList>
 
@@ -86,9 +90,19 @@ const AdminDashboard = ({  setIsAuthenticated, setUser }) => {
               <CardHeader>
                 <CardTitle>Employees</CardTitle>
               </CardHeader>
-
               <CardContent>
                 <EmployeeTable />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="attendance" className="mx-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Attendance</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <EmployeesAttendanceLog />
               </CardContent>
             </Card>
           </TabsContent>

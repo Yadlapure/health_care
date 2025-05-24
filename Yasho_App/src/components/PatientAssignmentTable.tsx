@@ -43,10 +43,6 @@ export const PatientAssignmentTable = () => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [selectedPractitioners, setSelectedPractitioners] = useState({});
 
-
-
-  console.log("selectedLocations", selectedLocations);
-
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -108,8 +104,6 @@ export const PatientAssignmentTable = () => {
     }
   };
 
-  console.log("visit", visitMap);
-
   useEffect(() => {
     fetchData();
   }, []);
@@ -125,8 +119,6 @@ export const PatientAssignmentTable = () => {
       const from_ts = new Date(fromDate).getTime();
       const to_ts = new Date(toDate).getTime();
       const location = selectedLocations[clientId];
-
-      console.log("location", location);
 
       if (!fromDate || !toDate) {
         toast.error("Please select valid from and to dates.");
@@ -192,7 +184,6 @@ export const PatientAssignmentTable = () => {
         setLoading(false);
         return;
       }
-      console.log("visitId", visitId);
       
       const response = await visits.unAssignPractToClient(visitId);
 
