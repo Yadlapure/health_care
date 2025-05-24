@@ -10,6 +10,7 @@ from app.user.user_enum import UserEntity
 from app.user.user_service import get_user, get_client, get_employee
 from app.visit.visit_model import Visit, VisitStatus, Details
 
+IST = pytz.timezone("Asia/Kolkata")
 
 # s3 = boto3.client(
 #     "s3",
@@ -29,7 +30,8 @@ from app.visit.visit_model import Visit, VisitStatus, Details
 async def assign(admin_id:str,client_id:str,emp_id:str, from_ts:datetime,to_ts:datetime,lat:str,lng:str):
     status = VisitStatus.initiated
     visit_id = "V" + str(uuid4().int)[:6]
-
+    from_ts = from_ts.astimezone(IST)
+    to_ts = to_ts.astimezone(IST)
     client = await get_client(client_id)
     employee = await get_employee(emp_id)
     location = {
@@ -70,7 +72,7 @@ async def check_in_out(
         lng:str,
         img:UploadFile = File(...)
 ):
-    date = datetime.now(tz=pytz.UTC)
+    date = datetime.now(IST)
     tomorrow = date+timedelta(days=1)
     extension = img.filename.split(".")[-1]
     name = str(uuid4().int)[:10]
@@ -130,26 +132,9 @@ async def check_in_out(
                 else:
                     return "Provide vitals before checkout",0
         await visit.save()
-
-        # client = await get_user(visit.assigned_client_id)
-        # pract = await get_user(visit.assigned_pract_id)
-        # client.assigned = False
-        # pract.assigned = False
-        # await client.save()
-        # await pract.save()
-        # await visit.save()
     else:
         return "Already checkedOut",0
-    # assigned_client = await get_client(visit.assigned_client_id)
-    #
-    # obj = {
-    #     "visit_id": visit.visit_id,
-    #     "assigned_client":assigned_client.name,
-    #     "checkIn": visit.checkIn.at,
-    #     "checkOut": visit.checkOut.at,
-    #     "status":visit.status,
-    #     "for_date":visit.for_date
-    # }
+
     return "Success",0
 
 
@@ -159,16 +144,7 @@ async def update_vitals(visit_id,bloodPressure,sugar,notes):
         return "No visit assigned today",0
     if not notes:
         return "Provide notes",403
-    today = datetime.now()
-    # if prescription_images:
-    #     for img in prescription_images:
-    #         extension = img.filename.split(".")[-1]
-    #         name = str(uuid4().int)[:10]
-    #         imgname = name+"."+extension
-    #         vitals_object_name = upload_to_s3(img.file,f"vitals/{imgname}",get_settings().config_s3_bucket,extension)
-    #         if not vitals_object_name:
-    #             return "Error while uploading",403
-    #         visit.vitals.prescription_images.append(vitals_object_name)
+    today = datetime.now(IST)
     for i in visit.details:
         if i.for_date.date() == today.date():
             i.vitals.notes=notes
@@ -185,22 +161,10 @@ async def get_visits(curr_user):
             return "No visits available",403
         return visits,0
 
-    visitsArray = []
     if curr_user["entity_type"] == UserEntity.client.value:
         visits = await Visit.find({"assigned_client_id":curr_user["user_id"]}).to_list()
         if not visits:
             return "No visits available",403
-        # for i in visits:
-        #     visited_pract = await get_user(i.assigned_pract_id)
-        #     obj = {
-        #         "vitals": i.vitals,
-        #         "checkIn": i.checkIn.at,
-        #         "checkOut": i.checkOut.at,
-        #         "visit_id": i.visit_id,
-        #         "assigned_pract":visited_pract.name,
-        #         "status":i.status
-        #     }
-        #     visitsArray.append(obj)
         return visits,0
 
 
@@ -208,18 +172,6 @@ async def get_visits(curr_user):
         visits = await Visit.find({"assigned_emp_id":curr_user["user_id"],"main_status": {"$ne": VisitStatus.cancelledVisit.value}}).to_list()
         if not visits:
             return "No visits assigned",403
-        # for i in visits:
-        #     assigned_client = await get_user(i.assigned_client_id)
-        #     for item in i.details:
-        #         obj = {
-        #             "visit_id": i.visit_id,
-        #             "checkIn": item.checkIn.at,
-        #             "checkOut": item.checkOut.at,
-        #             "assigned_client":assigned_client.name,
-        #             "status":item.daily_status,
-        #             "for_date":item.for_date
-        #         }
-        #         visitsArray.append(obj)
 
         return visits,0
 
@@ -235,7 +187,7 @@ async def get_image_urls(object_names):
     return response,0
 
 async def unassign(visit_id:str):
-    today = datetime.now()
+    today = datetime.now(IST)
     visit = await Visit.find_one({"visit_id": visit_id})
     if not visit:
         return "No visit has been assigned",403
@@ -257,3 +209,23 @@ async def extend(visit_id:str,to_ts:datetime):
     visit.to_ts = to_ts
     await visit.save()
     return "To date extended successfully", 0
+
+
+async def create_missing_details_for_today():
+    now_ist = datetime.now(IST)
+    today = now_ist.date()
+    tomorrow = today + timedelta(days=1)
+
+    visits = await Visit.find({
+        "main_status": VisitStatus.checkedIn,
+        "to_ts": {"$gte": now_ist}
+    }).to_list()
+
+    for visit in visits:
+        if not any(d.for_date.date() == tomorrow for d in visit.details):
+            if visit.to_ts.date() >= tomorrow:
+                visit.details.append(Details(
+                    daily_status=VisitStatus.initiated,
+                    for_date=tomorrow
+                ))
+                await visit.save()

@@ -12,7 +12,6 @@ from app.user.user_service import (
     create_client,
     create_employee,
     get_all_users,
-    update_role,
     deactivate,
     get_attendance
 )

@@ -1,11 +1,14 @@
 from datetime import datetime, timedelta
 from uuid import uuid4
+import pytz
 
 from app.app_bundle.env_config_settings import get_settings
 from app.app_bundle.s3_utils import upload_to_s3
 from app.user.user_enum import UserEntity
 from app.user.user_model import Yasho_User, hash_password, Client, Employee
 from app.visit.visit_model import Visit, VisitStatus
+
+IST = pytz.timezone("Asia/Kolkata")
 
 
 async def get_user(user_id:str):
@@ -41,7 +44,6 @@ async def create_employee(
     if user:
         return "User already exists. Please login", 401
     user_id = "E"+str(uuid4().int)[:6]
-    # password = hash_password(password).decode("utf-8")
     id_proofs=[]
     for img in id_proof:
         extension = img.filename.split(".")[-1]
@@ -83,9 +85,6 @@ async def generate_user_login(mobile: str, password: str):
     return {"token": user.token(entity_type=user.entity_type)}, 0
 
 
-async def change_sub_merchant_password(user_id,new_password):
-    pass
-
 async def get_all_users():
     clients = await Client.find({"entity_type":"client"}).to_list()
     employees = await Employee.find({"entity_type":"employee"}).to_list()
@@ -94,26 +93,6 @@ async def get_all_users():
         return "No users found",404
     users = [user.model_dump(exclude={"id"}) for user in users]
     return users,0
-
-
-async def update_role(user_id, entity):
-    user = await  get_user(user_id)
-    if not user:
-        return "User not found",404
-    if entity in UserEntity.__members__:
-        if entity == UserEntity.client.value:
-            user.entity_type = UserEntity.client
-            changed_id = user_id.split("P")
-            final_id = "C"+changed_id[1]
-            user.user_id=final_id
-        if entity == UserEntity.pract.value:
-            user.entity_type = UserEntity.pract
-            changed_id = user_id.split("C")
-            final_id = "P"+changed_id[1]
-            user.user_id=final_id
-        await user.save()
-        return "Role updated successfully",0
-    return "Entity type doesn't exist",404
 
 
 async def deactivate(user_id):
