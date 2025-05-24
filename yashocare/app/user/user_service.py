@@ -1,11 +1,11 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from uuid import uuid4
 
 from app.app_bundle.env_config_settings import get_settings
 from app.app_bundle.s3_utils import upload_to_s3
 from app.user.user_enum import UserEntity
 from app.user.user_model import Yasho_User, hash_password, Client, Employee
-from app.visit.visit_model import Visit
+from app.visit.visit_model import Visit, VisitStatus
 
 
 async def get_user(user_id:str):
@@ -124,10 +124,104 @@ async def deactivate(user_id):
     return "User deactivated successfully",0
 
 
-async def get_attendance(user_id,from_ts,to_ts):
-    visits = await Visit.find({
-        "assigned_emp_id": user_id,
-        "from_ts": {"$lte": to_ts},  # can start before or during
-        "to_ts": {"$gte": from_ts}   # can end after or during
-    })
-    return
+async def get_attendance(user_id,start:datetime,end:datetime):
+    today = datetime.now().date()
+    visits = await Visit.find({"assigned_emp_id": user_id,"from_ts": {"$lte": end},"to_ts": {"$gte": start}}).to_list()
+    if not visits:
+        return "No visits available for this range",0
+    attendance ={}
+    for visit in visits:
+        key = visit.from_ts
+        if visit.main_status.value == VisitStatus.initiated.value:
+            if visit.from_ts.date() > today:
+                continue
+            else:
+                if visit.to_ts.date() == today or visit.to_ts.date() > today:
+                    iterate = int(((today - visit.from_ts.date()).total_seconds())/86400)
+                    i=0
+                    while i < iterate:
+                        attendance[key.date()] = "absent"
+                        key += timedelta(days=1)
+                        i += 1
+                else:
+                    iterate = int(((visit.to_ts - visit.from_ts).total_seconds())/86400)
+                    i=0
+                    while i <= iterate:
+                        attendance[key.date()] = "absent"
+                        key += timedelta(days=1)
+                        i += 1
+                continue
+        elif visit.main_status.value == VisitStatus.checkedIn.value and visit.from_ts.date() < today:
+            if visit.to_ts.date() == today or visit.to_ts.date() > today:
+                iterate = int(((today - visit.from_ts.date()).total_seconds())/86400)
+                i=0
+                while i < iterate:
+                    attendance[key.date()] = "absent"
+                    for detail in visit.details:
+                        # if detail.for_date.date() == key.date() and detail.daily_status.value == VisitStatus.initiated.value:
+                        #     attendance[key.date()] = "absent"
+                        #     break
+                        if detail.for_date.date() == key.date() and detail.daily_status.value == VisitStatus.checkedIn.value or detail.daily_status.value == VisitStatus.vitalUpdate.value:
+                            attendance[key.date()] = "half_day"
+                            break
+                        elif detail.for_date.date() == key.date() and detail.daily_status.value == VisitStatus.checkedOut.value:
+                            attendance[key.date()] = "present"
+                            break
+                    key += timedelta(days=1)
+                    i += 1
+            else:
+                iterate = int(((visit.to_ts - visit.from_ts).total_seconds())/86400)
+                i=0
+                while i <= iterate:
+                    attendance[key.date()] = "absent"
+                    for detail in visit.details:
+                        # if detail.for_date.date() == key.date() and detail.daily_status.value == VisitStatus.initiated.value:
+                        #     attendance[key.date()] = "absent"
+                        #     break
+                        if detail.for_date.date() == key.date() and detail.daily_status.value == VisitStatus.checkedIn.value or detail.daily_status.value == VisitStatus.vitalUpdate.value:
+                            attendance[key.date()] = "half_day"
+                            break
+                        elif detail.for_date.date() == key.date() and detail.daily_status.value == VisitStatus.checkedOut.value:
+                            attendance[key.date()] = "present"
+                            break
+                    key += timedelta(days=1)
+                    i += 1
+            continue
+        elif visit.main_status.value == VisitStatus.checkedOut.value and visit.from_ts.date() <= today:
+            if visit.to_ts.date() == today or visit.to_ts.date() > today:
+                iterate = int(((today - visit.from_ts.date()).total_seconds())/86400)
+                i=0
+                while i < iterate:
+                    attendance[key.date()] = "absent"
+                    for detail in visit.details :
+                        # if detail.for_date.date() == key.date() and detail.daily_status.value == VisitStatus.initiated.value:
+                        #     attendance[key.date()] = "absent"
+                        #     break
+                        if detail.for_date.date() == key.date() and detail.daily_status.value == VisitStatus.checkedIn.value or detail.daily_status.value == VisitStatus.vitalUpdate.value:
+                            attendance[key.date()] = "half_day"
+                            break
+                        elif detail.for_date.date() == key.date() and detail.daily_status.value == VisitStatus.checkedOut.value:
+                            attendance[key.date()] = "present"
+                            break
+                    key += timedelta(days=1)
+                    i += 1
+            else:
+                iterate = int(((visit.to_ts - visit.from_ts).total_seconds())/86400)
+                i=0
+                while i <= iterate:
+                    attendance[key.date()] = "absent"
+                    for detail in visit.details:
+                        # if detail.for_date.date() == key.date() and detail.daily_status.value == VisitStatus.initiated.value:
+                        #     attendance[key.date()] = "absent"
+                        #     break
+                        if detail.for_date.date() == key.date() and detail.daily_status.value == VisitStatus.checkedIn.value or detail.daily_status.value == VisitStatus.vitalUpdate.value:
+                            attendance[key.date()] = "half_day"
+                            break
+                        elif detail.for_date.date() == key.date() and detail.daily_status.value == VisitStatus.checkedOut.value:
+                            attendance[key.date()] = "present"
+                            break
+                    key += timedelta(days=1)
+                    i += 1
+            continue
+
+    return attendance,0
