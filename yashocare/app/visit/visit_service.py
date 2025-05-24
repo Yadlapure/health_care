@@ -249,3 +249,11 @@ async def unassign(visit_id:str):
 
     await visit.save()
     return "Unassigned successfully",0
+
+async def extend(visit_id:str,to_ts:datetime):
+    visit = await Visit.find_one({"visit_id": visit_id,"main_status": {"$ne": VisitStatus.cancelledVisit.value}})
+    if not visit:
+        return "Wrong visit to extend",403
+    visit.to_ts = to_ts
+    await visit.save()
+    return "To date extended successfully", 0

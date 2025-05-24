@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from app.app_bundle.auth.authorized_req_user import CurrentUserInfo, get_current_user
 from app.user.user_enum import UserEntity
 # from app.user.user_service import generate_user_login, get_user, create_user, change_sub_merchant_password
-from app.visit.visit_service import assign,check_in_out, update_vitals, get_visits, get_image_urls, unassign
+from app.visit.visit_service import assign,check_in_out, update_vitals, get_visits, get_image_urls, unassign, extend
 
 visit_router = APIRouter()
 
@@ -21,6 +21,11 @@ class Assign(BaseModel):
 
 class Unassign(BaseModel):
     visit_id:str
+
+
+class Extend(BaseModel):
+    visit_id:str
+    to_ts:datetime
 
 @visit_router.post("/assign")
 async def handler_assign(
@@ -50,7 +55,6 @@ async def handler_check_in_out(
 @visit_router.post("/update-vitals")
 async def handler_update_vitals(
         notes:str= Form(...),visit_id:str= Form(...),
-        # prescription_images:Annotated[Optional[List[UploadFile]], File()] = [],
         bloodPressure:str= Form(""),sugar:str= Form(""),
         curr_user: CurrentUserInfo = Depends(get_current_user)
 ):
@@ -96,6 +100,19 @@ async def handler_unassign(
     if curr_user["entity_type"] != UserEntity.admin.value:
         return {"error":"Not Authorized","status_code":401}
     response, status_code = await unassign(visit_id=unassign_req.visit_id)
+    if status_code == 0:
+        return {"status_code": status_code, "data": response}
+    return {"status_code": status_code, "error": response}
+
+
+@visit_router.post("/extend")
+async def handler_extend(
+        extend_req: Extend,
+        curr_user: CurrentUserInfo = Depends(get_current_user),
+):
+    if curr_user["entity_type"] != UserEntity.admin.value:
+        return {"error":"Not Authorized","status_code":401}
+    response, status_code = await extend(visit_id=extend_req.visit_id,to_ts=extend_req.to_ts)
     if status_code == 0:
         return {"status_code": status_code, "data": response}
     return {"status_code": status_code, "error": response}
