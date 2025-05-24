@@ -139,17 +139,15 @@ async def get_attendance(user_id, start: datetime, end: datetime):
 
     for visit in visits:
         from_date = visit.from_ts.date()
-        to_date = visit.to_ts.date()
-        to_date = min(to_date, today - timedelta(days=1))
+        to_date = min(visit.to_ts.date(), today - timedelta(days=1))
 
         if from_date > to_date:
             continue
 
-        key = visit.from_ts
         total_days = (to_date - from_date).days + 1
 
         for i in range(total_days):
-            curr_date = key.date()
+            curr_date = from_date + timedelta(days=i)
             status = "absent"
             check_in = None
             check_out = None
@@ -158,21 +156,18 @@ async def get_attendance(user_id, start: datetime, end: datetime):
                 if detail.for_date.date() == curr_date:
                     if detail.daily_status.value == VisitStatus.checkedOut.value:
                         status = "present"
-                        check_in = detail.checkIn.at
-                        check_out = detail.checkOut.at
+                        check_in = detail.checkIn.at if detail.checkIn else None
+                        check_out = detail.checkOut.at if detail.checkOut else None
                         break
                     elif detail.daily_status.value in [VisitStatus.checkedIn.value, VisitStatus.vitalUpdate.value]:
                         status = "half_day"
-                        check_in = detail.checkIn.at
+                        check_in = detail.checkIn.at if detail.checkIn else None
                         break
 
-            record = {
+            attendance[curr_date] = {
                 "status": status,
                 "check_in_time": check_in if status in ["half_day", "present"] else None,
                 "check_out_time": check_out if status == "present" else None
             }
-
-            attendance[curr_date] = record
-            key += timedelta(days=1)
 
     return attendance, 0
