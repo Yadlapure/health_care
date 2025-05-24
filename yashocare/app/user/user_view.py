@@ -37,6 +37,7 @@ class RoleUpdate(BaseModel):
 
 
 class Attendance(BaseModel):
+    user_id:str
     from_ts:datetime
     to_ts:datetime
 
@@ -157,7 +158,7 @@ async def handler_get_attendance(
 ):
     if curr_user["entity_type"] == UserEntity.client.value:
         return {"error":"Not Authorized","status_code":401}
-    response, status_code = await get_attendance(user_id=curr_user["user_id"],start=att_req.from_ts,end=att_req.to_ts)
+    response, status_code = await get_attendance(user_id=att_req.user_id,start=att_req.from_ts,end=att_req.to_ts)
     if status_code == 0:
         return {"status_code": status_code, "data": response}
     return {"status_code": status_code, "error": response}
