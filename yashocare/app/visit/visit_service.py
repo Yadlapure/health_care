@@ -41,9 +41,9 @@ async def assign(admin_id:str,client_id:str,emp_id:str, from_ts:datetime,to_ts:d
     emp_visit = await Visit.find_one({"assigned_emp_id":emp_id,"from_ts": {"$lte": to_ts},"to_ts": {"$gte": from_ts},"main_status":{"$ne":VisitStatus.cancelledVisit}})
 
     if visit and visit.main_status.value != VisitStatus.cancelledVisit:
-        return "Client Already assigned for the date",0
+        return "Client Already assigned for the date",403
     if emp_visit and emp_visit.main_status.value != VisitStatus.cancelledVisit:
-        return "Employee Already assigned for the date",0
+        return "Employee Already assigned for the date",403
     if not client or not employee or from_ts.date() < datetime.now(tz=pytz.UTC).date():
         return {"message":"Incorrect Credentials"},401
     details = [{
@@ -213,7 +213,7 @@ async def extend(visit_id:str,to_ts:datetime):
     visit = await Visit.find_one({"visit_id": visit_id,"main_status": {"$ne": VisitStatus.cancelledVisit.value}})
     emp_visit = await Visit.find_one({"assigned_emp_id":visit.assigned_emp_id,"from_ts": {"$lte": to_ts},"to_ts": {"$gte": visit.from_ts}})
     if emp_visit and emp_visit.main_status.value != VisitStatus.cancelledVisit:
-        return "Employee Already assigned for the date",0
+        return "Employee Already assigned for the date",403
     if not visit:
         return "Wrong visit to extend",403
     visit.to_ts = to_ts.date()
