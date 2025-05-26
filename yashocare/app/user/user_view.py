@@ -98,15 +98,24 @@ async def handler_get_me_detail(
     user = None
     if curr_user["entity_type"] == "admin":
         user = await get_user(user_id=user_id)
-    if curr_user["entity_type"] == "employee":
+    elif curr_user["entity_type"] == "employee":
         user = await get_employee(user_id=user_id)
-    if curr_user["entity_type"] == "client":
+    else:
         user = await get_client(user_id=user_id)
     if not user:
         return {"status_code":404,"data":"Invalid user"}
     return {
         "status_code": 0,
-        "data": user
+        "data": {
+            "profile": {
+                "email": user.email,
+                "name": user.name,
+                "mobile": user.mobile,
+                "user_id": user.user_id,
+                "entity_type": user.entity_type,
+                "photo":user.profie_photo if curr_user["entity_type"]== "employee" else None
+            },
+        },
     }
 
 
