@@ -31,8 +31,11 @@ export const VisitTable = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedVisit, setSelectedVisit] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const visitsPerPage = 10;
+  const [checkoutImages, setCheckoutImages] = useState<{
+    [key: string]: string;
+  }>({});
 
+  const visitsPerPage = 10;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -61,10 +64,31 @@ export const VisitTable = () => {
     fetchVisits();
   }, []);
 
-  const openVitalsModal = (visit) => {
+  const openVitalsModal = async (visit) => {
     setSelectedVisit(visit);
     setModalOpen(true);
 
+    const imgPaths = visit.details
+      .flatMap((detail) => [detail.checkIn?.img, detail.checkOut?.img])
+      .filter(Boolean);
+
+    if (imgPaths.length > 0) {
+      try {
+        const response = await visits.getImageURL(imgPaths);
+        if (response.status_code === 0 && Array.isArray(response.data)) {
+          const flatImageMap = response.data.reduce((acc, obj) => {
+            const [key, value] = Object.entries(obj)[0];
+            acc[key] = value;
+            return acc;
+          }, {});
+          setCheckoutImages(flatImageMap);
+        } else {
+          toast.error("Failed to fetch image URLs.");
+        }
+      } catch (err) {
+        toast.error("Something went wrong while fetching images.");
+      }
+    }
   };
 
   const indexOfLastVisit = currentPage * visitsPerPage;
@@ -91,6 +115,7 @@ export const VisitTable = () => {
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
+
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -185,6 +210,7 @@ export const VisitTable = () => {
           </TableBody>
         </Table>
       </div>
+
       <Pagination>
         <PaginationContent>
           <PaginationPrevious
@@ -207,8 +233,9 @@ export const VisitTable = () => {
           />
         </PaginationContent>
       </Pagination>
+
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent>
+        <DialogContent className="max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Visit Details</DialogTitle>
           </DialogHeader>
@@ -226,52 +253,62 @@ export const VisitTable = () => {
                   : "N/A"}
               </div>
 
-              {selectedVisit.details
-                .filter((detail) => {
-                  const detailDate = new Date(detail.for_date);
-                  const fromDate = new Date(selectedVisit.from_ts);
-                  const toDate = new Date(selectedVisit.to_ts);
-
-                  detailDate.setHours(0, 0, 0, 0);
-                  fromDate.setHours(0, 0, 0, 0);
-                  toDate.setHours(0, 0, 0, 0);
-
-                  return detailDate >= fromDate && detailDate <= toDate;
-                })
-                .map((detail, index) => (
-                  <div key={index} className="border-t pt-2">
-                    <h4 className="font-semibold mb-1">
-                      Date: {new Date(detail.for_date).toLocaleDateString()}
-                    </h4>
-                    <div>
-                      <strong>Check-In Time:</strong>{" "}
-                      {detail.checkIn?.at
-                        ? new Date(detail.checkIn.at).toLocaleTimeString()
-                        : "N/A"}
-                    </div>
-                    <div>
-                      <strong>Check-Out Time:</strong>{" "}
-                      {detail.checkOut?.at
-                        ? new Date(detail.checkOut.at).toLocaleTimeString()
-                        : "N/A"}
-                    </div>
-
-                    <div>
-                      <strong>Sugar:</strong>{" "}
-                      {detail.vitals?.sugar
-                        ? `${detail.vitals.sugar}`
-                        : "N/A"}
-                    </div>
-                    <div>
-                      <strong>Blood Pressure:</strong>{" "}
-                      {detail.vitals?.bloodPressure || "N/A"}
-                    </div>
-                    <div>
-                      <strong>Notes:</strong>{" "}
-                      {detail.vitals?.notes ? `${detail.vitals.notes}` : "N/A"}
-                    </div>
+              {selectedVisit.details.map((detail, index) => (
+                <div key={index} className="border-t pt-2">
+                  <h4 className="font-semibold mb-1">
+                    Date: {new Date(detail.for_date).toLocaleDateString()}
+                  </h4>
+                  <div>
+                    <strong>Check-In Time:</strong>{" "}
+                    {detail.checkIn?.at
+                      ? new Date(detail.checkIn.at).toLocaleTimeString()
+                      : "N/A"}
                   </div>
-                ))}
+                  {detail.checkIn?.img &&
+                    checkoutImages[detail.checkIn.img] && (
+                      <div className="mt-2">
+                        <img
+                          src={checkoutImages[detail.checkIn.img]}
+                          alt="Check-In"
+                          className="w-32 h-32 object-cover rounded-full border cursor-pointer transition-transform hover:scale-110"
+                          title="Check-In image"
+                        />
+                      </div>
+                    )}
+
+                  <div>
+                    <strong>Check-Out Time:</strong>{" "}
+                    {detail.checkOut?.at
+                      ? new Date(detail.checkOut.at).toLocaleTimeString()
+                      : "N/A"}
+                  </div>
+
+                  {detail.checkOut?.img &&
+                    checkoutImages[detail.checkOut.img] && (
+                      <div className="mt-2">
+                        <img
+                          src={checkoutImages[detail.checkOut.img]}
+                          alt="Checkout"
+                          className="w-32 h-32 object-cover rounded-full border cursor-pointer transition-transform hover:scale-110"
+                          title="Checkout image"
+                        />
+                      </div>
+                    )}
+
+                  <div>
+                    <strong>Sugar:</strong>{" "}
+                    {detail.vitals?.sugar ? `${detail.vitals.sugar}` : "N/A"}
+                  </div>
+                  <div>
+                    <strong>Blood Pressure:</strong>{" "}
+                    {detail.vitals?.bloodPressure || "N/A"}
+                  </div>
+                  <div>
+                    <strong>Notes:</strong>{" "}
+                    {detail.vitals?.notes ? `${detail.vitals.notes}` : "N/A"}
+                  </div>
+                </div>
+              ))}
             </div>
           ) : (
             <p>No visit data found.</p>
