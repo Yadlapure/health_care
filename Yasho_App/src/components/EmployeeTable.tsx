@@ -179,7 +179,6 @@ export const EmployeeTable = () => {
 
   return (
     <>
-      {/* Employee Table */}
       <div className="rounded-md border mt-8">
         <Table>
           <TableHeader>
@@ -248,7 +247,6 @@ export const EmployeeTable = () => {
         </Button>
       </div>
 
-      {/* Add Employee Form */}
       {showAddForm && (
         <div className="space-y-6 p-4 max-w-5xl mx-auto">
           <h2 className="text-xl font-semibold">Add Employee</h2>
@@ -387,7 +385,6 @@ export const EmployeeTable = () => {
         </div>
       )}
 
-      {/* Modal */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent>
           <DialogHeader>

@@ -67,17 +67,14 @@ export const VisitTable = () => {
 
   };
 
-  // Pagination logic
   const indexOfLastVisit = currentPage * visitsPerPage;
   const indexOfFirstVisit = indexOfLastVisit - visitsPerPage;
   const currentVisits = visitsData
     .filter((visit) => visit.status !== "CANCELLEDVISIT")
     .slice(indexOfFirstVisit, indexOfLastVisit);
 
-  // Change page
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  // Total number of pages
   const totalPages = Math.ceil(
     visitsData.filter((visit) => visit.status !== "CANCELLEDVISIT").length /
       visitsPerPage
@@ -188,7 +185,6 @@ export const VisitTable = () => {
           </TableBody>
         </Table>
       </div>
-      {/* Pagination Controls */}
       <Pagination>
         <PaginationContent>
           <PaginationPrevious
@@ -211,7 +207,6 @@ export const VisitTable = () => {
           />
         </PaginationContent>
       </Pagination>
-      {/* Modal for visit details */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent>
           <DialogHeader>
@@ -220,7 +215,6 @@ export const VisitTable = () => {
 
           {selectedVisit ? (
             <div className="space-y-4 text-sm">
-              {/* Show visit date range */}
               <div>
                 <strong>Visit Period:</strong>{" "}
                 {selectedVisit.from_ts && selectedVisit.to_ts
@@ -232,14 +226,12 @@ export const VisitTable = () => {
                   : "N/A"}
               </div>
 
-              {/* Filter details to only those within visit date range */}
               {selectedVisit.details
                 .filter((detail) => {
                   const detailDate = new Date(detail.for_date);
                   const fromDate = new Date(selectedVisit.from_ts);
                   const toDate = new Date(selectedVisit.to_ts);
 
-                  // Normalize time for comparison
                   detailDate.setHours(0, 0, 0, 0);
                   fromDate.setHours(0, 0, 0, 0);
                   toDate.setHours(0, 0, 0, 0);

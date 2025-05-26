@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import VisitStatusCard from "../components/VisitStatusCard";
 import LocationMap from "../components/LocationMap";
@@ -13,18 +12,20 @@ import {
   DialogTitle,
   DialogFooter,
 } from "../components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
-import { FaClock, FaUserAlt, FaStethoscope, FaFileAlt } from "react-icons/fa";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../components/ui/tabs";
+import { FaClock, FaStethoscope, FaFileAlt } from "react-icons/fa";
 import { toast } from "react-toastify";
 import visits from "../api/visits/visits";
 import { base64ToFile } from "../utils/base64ToFile";
 import PractDashboard from "../components/PractDashboard";
 import AttendanceLog from "../components/AttendanceLog";
 
-
-const PractitionerDetail = ({ setIsAuthenticated, setUser,user }) => {
-  const navigate = useNavigate();
-
+const PractitionerDetail = ({ setIsAuthenticated, setUser, user }) => {
   const [visit, setVisit] = useState(null);
   const [loading, setLoading] = useState(false);
   const [inLocationCaptured, setInLocationCaptured] = useState(false);
@@ -39,7 +40,8 @@ const PractitionerDetail = ({ setIsAuthenticated, setUser,user }) => {
   const [capturedOutLocation, setCapturedOutLocation] = useState(null);
   const [capturedOutSelfie, setCapturedOutSelfie] = useState(null);
   const [showDashboard, setShowDashboard] = useState(false);
-  const [ visitLocation,setVisitLocation] = useState(null)
+  const [visitLocation, setVisitLocation] = useState(null);
+  const [image, setImage] = useState(null);
 
   const [activeTab, setActiveTab] = useState("INITIATED");
 
@@ -92,12 +94,11 @@ const PractitionerDetail = ({ setIsAuthenticated, setUser,user }) => {
       if (!todayDetail) {
         toast.error("No detail entry found for today.");
         return;
-      }      
+      }
 
       setVisit({ ...todayDetail });
       setVisitLocation(todayVisit);
 
-      // Dashboard visibility logic
       const { daily_status, checkIn } = todayDetail;
 
       const isInit =
@@ -125,7 +126,6 @@ const PractitionerDetail = ({ setIsAuthenticated, setUser,user }) => {
         );
         setCapturedOutSelfie(todayDetail?.checkOut?.img || null);
       }
-      
 
       if (daily_status === "CHECKEDOUT") {
         setShowDashboard(true);
@@ -139,21 +139,15 @@ const PractitionerDetail = ({ setIsAuthenticated, setUser,user }) => {
       setLoading(false);
     }
   };
-  
-  
-  // Load visit data
+
   useEffect(() => {
     loadVisitData();
   }, []);
 
-  
-
-  // Handle location capture for check-in
   const handleInLocationCapture = (location) => {
     setCapturedInLocation(location);
   };
 
-  // Handle selfie capture for check-in
   const handleInSelfieCapture = async (imageData: string) => {
     setCapturedInSelfie(imageData);
 
@@ -194,8 +188,7 @@ const PractitionerDetail = ({ setIsAuthenticated, setUser,user }) => {
 
       const response = await visits.updatecheckInOut(formData);
       if (response.status_code === 0) {
-        await loadVisitData()
-        // Use functional update to ensure you're working with the latest state
+        await loadVisitData();
         setVisit((prevVisit) => {
           const updatedVisit = {
             ...prevVisit,
@@ -217,31 +210,26 @@ const PractitionerDetail = ({ setIsAuthenticated, setUser,user }) => {
       toast.error("Failed to complete check-in");
     }
   };
-  
 
-  // Handle vitals capture
   const handleVitalsSave = async (vitals) => {
-    
     if (!visit) return;
 
     const data = {
-      bloodPressure:vitals.bloodPressure,
-      notes:vitals.notes,
-      sugar:vitals.sugar,
-      visit_id:visitLocation.visit_id
-    }
+      bloodPressure: vitals.bloodPressure,
+      notes: vitals.notes,
+      sugar: vitals.sugar,
+      visit_id: visitLocation.visit_id,
+    };
 
     try {
       const response = await visits.updateVitals(data);
       if (response.status_code === 0) {
         await loadVisitData();
-        // setVisit(response.data);
         setActiveTab("VITALUPDATE");
         setVitalsCaptured(true);
 
         toast.success("Patient vitals saved");
       }
-      
     } catch (error) {
       console.error("Error saving vitals:", error);
       toast.error("Failed to save vitals");
@@ -253,7 +241,6 @@ const PractitionerDetail = ({ setIsAuthenticated, setUser,user }) => {
     setOutLocationCaptured(true);
   };
 
-  // Handle selfie capture for check-out
   const handleOutSelfieCapture = async (imageData: string) => {
     setCapturedOutSelfie(imageData);
 
@@ -269,7 +256,6 @@ const PractitionerDetail = ({ setIsAuthenticated, setUser,user }) => {
         outSelfie: imageData,
       };
 
-      // await StorageService.saveVisit(updatedVisit);
       setVisit(updatedVisit);
       setOutLocationCaptured(true);
       setOutSelfieCaptured(true);
@@ -309,10 +295,28 @@ const PractitionerDetail = ({ setIsAuthenticated, setUser,user }) => {
     }
   };
 
+  useEffect(() => {
+    const fetchImage = async () => {
+      if (!user || !user.data?.profile?.photo) return;
+
+      try {
+        setLoading(true);
+        const response = await visits.getImageURL([user.data.profile.photo]);
+        setImage(response.data[0]);
+      } catch (error) {
+        console.error("Error fetching profile image:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchImage();
+  }, [user]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
-        <Header title="Visit Details" showBack={false} />
+        <Header title="Visit Details" showBack={false} profile={image || {}} />
         <div className="flex justify-center items-center h-64">
           <div className="animate-pulse">Loading visit details...</div>
         </div>
@@ -329,6 +333,7 @@ const PractitionerDetail = ({ setIsAuthenticated, setUser,user }) => {
           rightContent={true}
           setIsAuthenticated={setIsAuthenticated}
           setUser={setUser}
+          profile={image || {}}
         />
         <div className="p-4 text-center">
           <p className="mb-4">The requested visit could not be found.</p>
@@ -340,25 +345,21 @@ const PractitionerDetail = ({ setIsAuthenticated, setUser,user }) => {
     );
   }
 
-  // Check if check-in is ready
   const isCheckInReady =
     inLocationCaptured &&
     inSelfieCaptured &&
     visit.daily_status === "INITIATED";
 
-  // Check if check-out is ready
   const isCheckOutReady =
     visit.daily_status === "VITALUPDATE" &&
     outLocationCaptured &&
     outSelfieCaptured;
 
-  // Check visit status to show appropriate content
   const showCheckInContent = true;
   const showVitalsContent = visit.daily_status === "CHECKEDIN";
   const showCheckOutContent = visit.daily_status === "VITALUPDATE";
   const isVisitComplete = visit.daily_status === "CHECKEDOUT";
 
-  // Determine which tabs are enabled
   const isAssessmentTabEnabled =
     inLocationCaptured &&
     inSelfieCaptured &&
@@ -369,7 +370,6 @@ const PractitionerDetail = ({ setIsAuthenticated, setUser,user }) => {
     (visit.daily_status === "CHECKEDIN" || visit.daily_status === "CHECKEDOUT");
 
   const handleTabChange = (value: string) => {
-    // Only allow tab changes if the conditions are met
     if (value === "INITIATED") {
       toast.error("Already Checked-in");
       return;
@@ -390,6 +390,7 @@ const PractitionerDetail = ({ setIsAuthenticated, setUser,user }) => {
           setIsAuthenticated={setIsAuthenticated}
           setUser={setUser}
           rightContent={true}
+          profile={image || {}}
         />
         <PractDashboard
           visit={visit}
@@ -407,6 +408,7 @@ const PractitionerDetail = ({ setIsAuthenticated, setUser,user }) => {
       <Header
         title={`YOUR VISIT`}
         showBack={visit.daily_status === "INITIATED" ? true : false}
+        profile={image || {}}
       />
       <div className="p-4 max-w-md mx-auto">
         <VisitStatusCard visit={visit} />
@@ -417,7 +419,11 @@ const PractitionerDetail = ({ setIsAuthenticated, setUser,user }) => {
           className="mb-6"
         >
           <TabsList className="w-full grid grid-cols-3">
-            <TabsTrigger value="INITIATED" className="flex items-center gap-1">
+            <TabsTrigger
+              value="INITIATED"
+              className="flex items-center gap-1"
+              disabled={visit.daily_status !== "INITIATED"}
+            >
               <FaClock className="h-4 w-4" />
               <span className="hidden sm:inline">Check In</span>
             </TabsTrigger>

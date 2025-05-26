@@ -100,7 +100,6 @@ const PaginationEllipsis = ({
     className={cn("flex h-9 w-9 items-center justify-center", className)}
     {...props}
   >
-    {/* <More className="h-4 w-4" /> */}
     <span className="sr-only">More pages</span>
   </span>
 );

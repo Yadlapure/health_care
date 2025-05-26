@@ -42,6 +42,11 @@ export const PatientAssignmentTable = () => {
   const [pendingAssignment, setPendingAssignment] = useState(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [selectedPractitioners, setSelectedPractitioners] = useState({});
+  const [extendModalOpen, setExtendModalOpen] = useState(false);
+  const [extendClientId, setExtendClientId] = useState(null);
+  const [newExtendDate, setNewExtendDate] = useState("");
+
+
 
   const fetchData = async () => {
     setLoading(true);
@@ -68,13 +73,17 @@ export const PatientAssignmentTable = () => {
         const visitsData = fetchVisits.data;
 
         visitsData.forEach((visit) => {
-          if (visit.is_active && visit.assigned_emp_id) {
+          if (
+            visit.is_active &&
+            visit.assigned_emp_id &&
+            visit.main_status !== "CHECKEDOUT"
+          ) {
             const assignedId = visit.assigned_pract_id || visit.assigned_emp_id;
             const assignedUser = users.find((u) => u.user_id === assignedId);
 
             visitStatusMap[visit.assigned_client_id] = {
               practitionerId: assignedId,
-              practitionerName: assignedUser?.name || "Unknown",
+              practitionerName: assignedUser?.name || "",
               fromDate: visit.from_ts,
               toDate: visit.to_ts,
               visitId: visit.visit_id,
@@ -103,6 +112,7 @@ export const PatientAssignmentTable = () => {
       setLoading(false);
     }
   };
+  
 
   useEffect(() => {
     fetchData();
@@ -144,9 +154,11 @@ export const PatientAssignmentTable = () => {
       if (response.status_code !== 0) {
         toast.error("Failed to assign practitioner.");
         return;
+      }else{
+          toast.success("Assigned successfully.");
+         await fetchData()
       }
 
-      toast.success("Assigned successfully.");
       setSelectedDates((prev) => {
         const copy = { ...prev };
         delete copy[clientId];
@@ -165,8 +177,6 @@ export const PatientAssignmentTable = () => {
         ...prev,
         [clientId]: false,
       }));
-
-      await fetchData();
     } catch (error) {
       toast.error("Could not assign practitioner.");
     } finally {
@@ -234,6 +244,43 @@ export const PatientAssignmentTable = () => {
       [clientId]: latlng,
     }));
   };
+
+  const handleExtendVisit = async () => {
+    try {
+      setLoading(true);
+      const clientId = extendClientId;
+      const visitId = visitMap[clientId]?.visitId;
+
+      if (!visitId || !newExtendDate) {
+        toast.error("Missing visit ID or new end date.");
+        return;
+      }
+
+      const to_ts = new Date(newExtendDate).getTime();
+      const response = await visits.extendPract(visitId, to_ts);
+
+      if (response.status_code !== 0) {
+        toast.error(response.error);
+        return;
+      }
+
+      toast.success("Visit extended successfully.");
+      await fetchData();
+
+      setExtendModalOpen(false);
+      setExtendClientId(null);
+      setNewExtendDate("");
+    } catch (err) {
+      toast.error("Could not extend visit.");
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const assignedPractitionerIds = new Set(
+    Object.values(visitMap).map((v) => v.practitionerId)
+  );
+  
 
   return (
     <div className="space-y-4">
@@ -369,7 +416,6 @@ export const PatientAssignmentTable = () => {
                     )}
                     {client.assignedTo && (
                       <div className="text-muted-foreground">
-                        {/* Optionally show assigned location if you have it */}
                         {selectedLocations[client.user_id]
                           ? `Lat: ${selectedLocations[
                               client.user_id
@@ -409,14 +455,21 @@ export const PatientAssignmentTable = () => {
                           <SelectValue placeholder="Assign practitioner..." />
                         </SelectTrigger>
                         <SelectContent>
-                          {practitioners.map((practitioner) => (
-                            <SelectItem
-                              key={practitioner.user_id}
-                              value={practitioner.user_id}
-                            >
-                              {practitioner.name}
-                            </SelectItem>
-                          ))}
+                          {practitioners
+                            .filter(
+                              (practitioner) =>
+                                !assignedPractitionerIds.has(
+                                  practitioner.user_id
+                                )
+                            )
+                            .map((practitioner) => (
+                              <SelectItem
+                                key={practitioner.user_id}
+                                value={practitioner.user_id}
+                              >
+                                {practitioner.name}
+                              </SelectItem>
+                            ))}
                         </SelectContent>
                       </Select>
                     ) : (
@@ -427,16 +480,31 @@ export const PatientAssignmentTable = () => {
                   </TableCell>
                   <TableCell className="text-right">
                     {client.assignedTo && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          handleUnassignPractitioner(client.user_id)
-                        }
-                        disabled={loading}
-                      >
-                        Unassign
-                      </Button>
+                      <div className="flex space-x-2 justify-end">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={loading}
+                          onClick={() => {
+                            setExtendClientId(client.user_id);
+                            setNewExtendDate("");
+                            setExtendModalOpen(true);
+                          }}
+                        >
+                          Extend
+                        </Button>
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            handleUnassignPractitioner(client.user_id)
+                          }
+                          disabled={loading}
+                        >
+                          Unassign
+                        </Button>
+                      </div>
                     )}
                   </TableCell>
                 </TableRow>
@@ -453,9 +521,7 @@ export const PatientAssignmentTable = () => {
 
           {pendingAssignment && (
             <div className="text-sm space-y-2">
-              <p>
-                Are you sure you want to assign
-              </p>
+              <p>Are you sure you want to assign</p>
             </div>
           )}
 
@@ -478,7 +544,7 @@ export const PatientAssignmentTable = () => {
             </Button>
 
             <Button
-            variant="outline"
+              variant="outline"
               onClick={() => {
                 if (pendingAssignment) {
                   handleAssignPractitioner(
@@ -499,6 +565,53 @@ export const PatientAssignmentTable = () => {
               }}
             >
               Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={extendModalOpen} onOpenChange={setExtendModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Extend Visit</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {extendClientId && (
+              <Input
+                type="date"
+                min={
+                  visitMap[extendClientId]?.toDate
+                    ? new Date(
+                        new Date(visitMap[extendClientId].toDate).getTime() +
+                          24 * 60 * 60 * 1000
+                      )
+                        .toISOString()
+                        .split("T")[0]
+                    : new Date().toISOString().split("T")[0]
+                }
+                value={newExtendDate}
+                onChange={(e) => setNewExtendDate(e.target.value)}
+              />
+            )}
+          </div>
+
+          <DialogFooter className="mt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setExtendModalOpen(false);
+                setNewExtendDate("");
+                setExtendClientId(null);
+              }}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              onClick={handleExtendVisit}
+              disabled={!newExtendDate || loading}
+            >
+              Confirm Extend
             </Button>
           </DialogFooter>
         </DialogContent>

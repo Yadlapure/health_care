@@ -22,6 +22,7 @@ const AdminDashboard = ({  setIsAuthenticated, setUser }) => {
         rightContent={true}
         setIsAuthenticated={setIsAuthenticated}
         setUser={setUser}
+        profile={null}
       />
       <div className="py-4 w-full max-w-screen-2xl mx-auto px-4">
         <Tabs defaultValue="assignments">

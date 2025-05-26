@@ -40,7 +40,6 @@ const PractDashboard = ({ visit, onClick }) => {
       onClick={onClick}
     >
       <CardContent className="p-4">
-        {/* <h1 className="mb-2">Client: {visit.assigned_client}</h1> */}
         <div className="flex items-center">
           <div className="mr-3">{info.icon}</div>
           <div>

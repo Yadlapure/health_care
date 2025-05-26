@@ -147,7 +147,6 @@ const EmployeesAttendanceLog: React.FC = () => {
         </Table>
       </div>
 
-      {/* Pagination UI */}
       {totalPages > 1 && (
         <Pagination className="mt-6">
           <PaginationContent>

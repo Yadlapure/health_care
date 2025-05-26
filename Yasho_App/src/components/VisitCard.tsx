@@ -1,18 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardContent } from "./ui/card";
-
 import {
   FaCalendarAlt,
   FaUserMd,
   FaPrescriptionBottleAlt,
 } from "react-icons/fa";
 import { Button } from "./ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "./ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import visits from "../api/visits/visits";
 import { formatDate } from "../utils/formatDate";
 
@@ -25,11 +19,13 @@ const VisitCard: React.FC<VisitCardProps> = ({ visit, practitionerName }) => {
   const [showDetails, setShowDetails] = useState(false);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
 
+  const detail = visit.detail || {};
+
   useEffect(() => {
     const fetchImageUrls = async () => {
-      if (showDetails && visit.vitals?.prescription_images?.length > 0) {
+      if (showDetails && detail.vitals?.prescription_images?.length > 0) {
         const result = await visits.getImageURL(
-          visit.vitals.prescription_images,
+          detail.vitals.prescription_images
         );
 
         if (result?.data) {
@@ -38,20 +34,28 @@ const VisitCard: React.FC<VisitCardProps> = ({ visit, practitionerName }) => {
         }
       }
     };
- 
+
     fetchImageUrls();
-  }, [showDetails, visit.vitals?.prescription_images]);
-  
+  }, [showDetails, detail.vitals?.prescription_images]);
+
+  const getStatus = () => {
+    if (visit.main_status === "CHECKEDIN") {
+      return detail.daily_status;
+    }
+    return visit.main_status;
+  };
+
   const getStatusColor = () => {
-    switch (visit.status) {
+    const status = getStatus();
+    switch (status) {
       case "INITIATED":
-        return "bg-yellow-200 text-black-800";
+        return "bg-yellow-200 text-black";
       case "CHECKEDIN":
-        return "bg-green-200 text-black-800";
+        return "bg-green-200 text-black";
       case "CHECKEDOUT":
-        return "bg-red-200 text-black-800";
+        return "bg-red-200 text-black";
       default:
-        return "bg-gray-100 text-black-800";
+        return "bg-gray-100 text-black";
     }
   };
 
@@ -63,22 +67,22 @@ const VisitCard: React.FC<VisitCardProps> = ({ visit, practitionerName }) => {
             <div>
               <div className="flex items-center text-sm text-gray-500 mt-1">
                 <FaCalendarAlt className="h-3 w-3 mr-1" />
-                <span>{formatDate(visit.checkIn)}</span>
+                <span>{detail.for_date.split("T")[0]}</span>
               </div>
-              <div className="flex items-center text-sm text-gray-500 mt-1">
+              {/* <div className="flex items-center text-sm text-gray-500 mt-1">
                 <FaUserMd className="h-3 w-3 mr-1" />
                 <span>{practitionerName}</span>
-              </div>
+              </div> */}
             </div>
 
             <div className="flex flex-col items-end">
               <span
                 className={`text-xs px-2 py-1 rounded-full ${getStatusColor()}`}
               >
-                {visit.status}
+                {getStatus()}
               </span>
 
-              {visit.status === "CHECKEDOUT" && (
+              {getStatus() === "CHECKEDOUT" && (
                 <Button
                   variant="ghost"
                   size="sm"
@@ -102,12 +106,12 @@ const VisitCard: React.FC<VisitCardProps> = ({ visit, practitionerName }) => {
           <div className="space-y-4">
             <div>
               <h3 className="text-sm font-medium text-gray-500">Checkin</h3>
-              <p>{formatDate(visit.checkIn)}</p>
+              <p>{formatDate(detail.checkIn?.at)}</p>
             </div>
 
             <div>
               <h3 className="text-sm font-medium text-gray-500">Checkout</h3>
-              <p>{formatDate(visit.checkOut)}</p>
+              <p>{formatDate(detail.checkOut?.at)}</p>
             </div>
 
             <div>
@@ -117,7 +121,7 @@ const VisitCard: React.FC<VisitCardProps> = ({ visit, practitionerName }) => {
               <p>{practitionerName}</p>
             </div>
 
-            {visit.vitals && (
+            {detail.vitals && (
               <div>
                 <h3 className="text-sm font-medium text-gray-500 flex items-center">
                   <FaUserMd className="mr-1" /> Vitals
@@ -125,25 +129,25 @@ const VisitCard: React.FC<VisitCardProps> = ({ visit, practitionerName }) => {
                 <div className="grid grid-cols-2 gap-2 mt-1">
                   <div>
                     <p className="text-xs text-gray-500">Blood Pressure</p>
-                    <p>{visit.vitals.bloodPressure}</p>
+                    <p>{detail.vitals.bloodPressure || "N/A"}</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">Heart Rate</p>
-                    <p>{visit.vitals.heartRate} BPM</p>
+                    <p>{detail.vitals.heartRate || "N/A"} BPM</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">Blood Sugar</p>
-                    <p>{visit.vitals.sugar} mg/dL</p>
+                    <p>{detail.vitals.sugar || "N/A"} mg/dL</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">Oxygen Saturation</p>
-                    <p>{visit.vitals.oxygenSaturation}%</p>
+                    <p>{detail.vitals.oxygenSaturation || "N/A"}%</p>
                   </div>
                 </div>
-                {visit.vitals.notes && (
+                {detail.vitals.notes && (
                   <div className="mt-2">
                     <p className="text-xs text-gray-500">Notes</p>
-                    <p className="text-sm">{visit.vitals.notes}</p>
+                    <p className="text-sm">{detail.vitals.notes}</p>
                   </div>
                 )}
               </div>

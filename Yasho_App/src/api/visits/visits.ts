@@ -7,8 +7,8 @@ const PreApi = {
   updateCheckInOut: "/api/v1/visit/checkInOut",
   assign: "/api/v1/visit/assign",
   UnAssign: "/api/v1/visit/unassign",
+  extendPract:"/api/v1/visit/extend"
 };
-
 
 const getVisits = async () => {
   try {
@@ -99,6 +99,27 @@ const unAssignPractToClient = async (visit_id) => {
   }
 };
 
+const extendPract = async (visit_id,to_ts) => {
+  try {
+    const response = await apiClient.post(
+      `${PreApi.extendPract}`,
+      {
+        visit_id,
+        to_ts,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching image URLs:", error);
+    return null;
+  }
+};
+
 
 export default {
   getVisits,
@@ -107,4 +128,5 @@ export default {
   updatecheckInOut,
   assignPractToClient,
   unAssignPractToClient,
+  extendPract,
 };
