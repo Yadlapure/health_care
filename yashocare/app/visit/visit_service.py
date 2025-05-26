@@ -37,8 +37,8 @@ async def assign(admin_id:str,client_id:str,emp_id:str, from_ts:datetime,to_ts:d
         "lat":lat,
         "lng":lng
     }
-    visit = await Visit.find_one({"assigned_client_id":client_id,"from_ts": {"$lte": to_ts},"to_ts": {"$gte": from_ts}})
-    emp_visit = await Visit.find_one({"assigned_emp_id":emp_id,"from_ts": {"$lte": to_ts},"to_ts": {"$gte": from_ts}})
+    visit = await Visit.find_one({"assigned_client_id":client_id,"from_ts": {"$lte": to_ts},"to_ts": {"$gte": from_ts},"main_status":{"$ne":VisitStatus.cancelledVisit}})
+    emp_visit = await Visit.find_one({"assigned_emp_id":emp_id,"from_ts": {"$lte": to_ts},"to_ts": {"$gte": from_ts},"main_status":{"$ne":VisitStatus.cancelledVisit}})
 
     if visit and visit.main_status.value != VisitStatus.cancelledVisit:
         return "Client Already assigned for the date",0
