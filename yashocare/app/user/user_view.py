@@ -13,7 +13,7 @@ from app.user.user_service import (
     create_employee,
     get_all_users,
     deactivate,
-    get_attendance
+    get_attendance, get_client, get_employee
 )
 
 user_router = APIRouter()
@@ -95,20 +95,18 @@ async def handler_get_me_detail(
         curr_user: CurrentUserInfo = Depends(get_current_user),
 ):
     user_id = curr_user["user_id"]
-    user = await get_user(user_id=user_id)
+    user = None
+    if curr_user["entity_type"] == "admin":
+        user = await get_user(user_id=user_id)
+    if curr_user["entity_type"] == "employee":
+        user = await get_employee(user_id=user_id)
+    if curr_user["entity_type"] == "client":
+        user = await get_client(user_id=user_id)
     if not user:
         return {"status_code":404,"data":"Invalid user"}
     return {
         "status_code": 0,
-        "data": {
-            "profile": {
-                "email": user.email,
-                "name": user.name,
-                "mobile": user.mobile,
-                "user_id": user.user_id,
-                "entity_type": user.entity_type
-            },
-        },
+        "data": user
     }
 
 
