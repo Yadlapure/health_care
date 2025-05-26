@@ -3,7 +3,7 @@ import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaSignOutAlt, FaUserCircle } from "react-icons/fa";
 import { toast } from "react-toastify";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog"; // Adjust the path if needed
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog"; 
 
 interface HeaderProps {
   title: string;
