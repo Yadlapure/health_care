@@ -169,7 +169,7 @@ async def get_visits(curr_user):
         return visits,0
 
     if curr_user["entity_type"] == UserEntity.client.value:
-        visits = await Visit.find({"assigned_client_id":curr_user["user_id"]}).to_list()
+        visits = await Visit.find({"assigned_client_id":curr_user["user_id"],"main_status": {"$ne": VisitStatus.cancelledVisit.value}}).to_list()
         if not visits:
             return "No visits available",403
         return visits,0
