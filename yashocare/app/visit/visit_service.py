@@ -31,8 +31,6 @@ ist = pytz.timezone('Asia/Kolkata')
 async def assign(admin_id:str,client_id:str,emp_id:str, from_ts:datetime,to_ts:datetime,lat:str,lng:str):
     status = VisitStatus.initiated
     visit_id = "V" + str(uuid4().int)[:6]
-    from_ts = ist.localize(from_ts)
-    to_ts = ist.localize(to_ts)
     client = await get_client(client_id)
     employee = await get_employee(emp_id)
     location = {
@@ -204,7 +202,6 @@ async def unassign(visit_id:str):
     return "Unassigned successfully",0
 
 async def extend(visit_id:str,to_ts:datetime):
-    to_ts = ist.localize(to_ts)
     visit = await Visit.find_one({"visit_id": visit_id,"main_status": {"$ne": VisitStatus.cancelledVisit.value}})
     if not visit:
         return "Wrong visit to extend",403
