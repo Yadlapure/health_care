@@ -222,13 +222,13 @@ async def extend(visit_id:str,to_ts:datetime):
 
 
 async def create_missing_details_for_today():
-    now_ist = datetime.now(tz=pytz.UTC)
+    now_ist = datetime.now(tz=pytz.UTC)+ timedelta(days=1)
     today = now_ist.date()
     tomorrow = today + timedelta(days=1)
     yesterday = today - timedelta(days=1)
 
     visits = await Visit.find({
-        "main_status": VisitStatus.checkedIn,
+        "main_status": {"$in": [VisitStatus.checkedIn, VisitStatus.initiated]},
         "to_ts": {"$gte": now_ist}
     }).to_list()
 
