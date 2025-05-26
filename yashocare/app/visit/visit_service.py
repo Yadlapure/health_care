@@ -37,14 +37,22 @@ async def assign(admin_id:str,client_id:str,emp_id:str, from_ts:datetime,to_ts:d
         "lat":lat,
         "lng":lng
     }
+    visit = await Visit.find_one({"assigned_client_id":client_id,"from_ts": {"$lte": to_ts},"to_ts": {"$gte": from_ts}})
+    emp_visit = await Visit.find_one({"assigned_emp_id":emp_id,"from_ts": {"$lte": to_ts},"to_ts": {"$gte": from_ts}})
+
+    if visit and visit.main_status.value != VisitStatus.cancelledVisit:
+        return "Client Already assigned for the date",0
+    if emp_visit and emp_visit.main_status.value != VisitStatus.cancelledVisit:
+        return "Employee Already assigned for the date",0
     if not client or not employee or from_ts.date() < datetime.now(tz=pytz.UTC).date():
         return {"message":"Incorrect Credentials"},401
-    visit = await Visit.find_one({"assigned_client_id":client_id,"from_date":from_ts,"to_ts":to_ts})
     details = [{
         "daily_status": VisitStatus.initiated,
         "for_date": from_ts.date()
     }]
     if visit and visit.main_status.value == VisitStatus.cancelledVisit:
+        visit.from_ts=from_ts
+        visit.to_ts=to_ts
         visit.assigned_emp_id = emp_id
         visit.main_status = VisitStatus.initiated
         visit.assigned_admin_id = admin_id
@@ -203,6 +211,9 @@ async def unassign(visit_id:str):
 
 async def extend(visit_id:str,to_ts:datetime):
     visit = await Visit.find_one({"visit_id": visit_id,"main_status": {"$ne": VisitStatus.cancelledVisit.value}})
+    emp_visit = await Visit.find_one({"assigned_emp_id":visit.assigned_emp_id,"from_ts": {"$lte": to_ts},"to_ts": {"$gte": visit.from_ts}})
+    if emp_visit and emp_visit.main_status.value != VisitStatus.cancelledVisit:
+        return "Employee Already assigned for the date",0
     if not visit:
         return "Wrong visit to extend",403
     visit.to_ts = to_ts.date()
@@ -214,6 +225,7 @@ async def create_missing_details_for_today():
     now_ist = datetime.now(tz=pytz.UTC)
     today = now_ist.date()
     tomorrow = today + timedelta(days=1)
+    yesterday = today - timedelta(days=1)
 
     visits = await Visit.find({
         "main_status": VisitStatus.checkedIn,
@@ -228,3 +240,12 @@ async def create_missing_details_for_today():
                     for_date=tomorrow
                 ))
                 await visit.save()
+
+    stale_visits = await Visit.find({
+        "main_status":{"$ne":VisitStatus.cancelledVisit},
+        "to_ts": yesterday
+    }).to_list()
+
+    for visit in stale_visits:
+        visit.main_status = VisitStatus.checkedOut
+        await visit.save()
