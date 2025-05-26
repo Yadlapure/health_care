@@ -31,8 +31,8 @@ ist = pytz.timezone('Asia/Kolkata')
 async def assign(admin_id:str,client_id:str,emp_id:str, from_ts:datetime,to_ts:datetime,lat:str,lng:str):
     status = VisitStatus.initiated
     visit_id = "V" + str(uuid4().int)[:6]
-    from_ts = ist.localize(from_ts).astimezone(pytz.UTC)
-    to_ts = ist.localize(to_ts).astimezone(pytz.UTC)
+    from_ts = ist.localize(from_ts)
+    to_ts = ist.localize(to_ts)
     client = await get_client(client_id)
     employee = await get_employee(emp_id)
     location = {

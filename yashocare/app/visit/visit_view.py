@@ -126,7 +126,7 @@ async def handler_extend(
         return {"status_code": status_code, "data": response}
     return {"status_code": status_code, "error": response}
 
-@visit_router.post("/midnight-task", tags=["Cron Tasks"])
+@visit_router.post("/cron-job", tags=["Cron Tasks"])
 async def midnight_cron_task():
     await create_missing_details_for_today()
     return {"message": "Details created successfully"}
