@@ -6,13 +6,10 @@ import jwt
 import pytz
 
 from beanie import Indexed
-from pydantic import BaseModel
 
 from app.app_bundle.database.base import MongoDocument
 from app.app_bundle.env_config_settings import get_settings
 from app.user.user_enum import UserEntity
-
-IST = pytz.timezone("Asia/Kolkata")
 
 
 class Yasho_User(MongoDocument):
@@ -34,7 +31,7 @@ class Yasho_User(MongoDocument):
             {
                 "user_id": str(self.user_id),
                 "entity_type": str(entity_type.value),
-                "exp": datetime.now(tz=IST) + timedelta(days=7),
+                "exp": datetime.now(tz=pytz.UTC) + timedelta(days=7),
             },
             key=get_settings().jwt_secret,
             algorithm="HS256",

@@ -1,15 +1,13 @@
 import enum
-from datetime import datetime,timedelta
+from datetime import datetime
 from typing import Optional, List
 import pytz
 
-from beanie import Indexed
 from pydantic import BaseModel, Field
 
 from app.app_bundle.database.base import MongoDocument
 from app.app_bundle.env_config_settings import get_settings
 
-IST = pytz.timezone("Asia/Kolkata")
 
 
 class Vital(BaseModel):

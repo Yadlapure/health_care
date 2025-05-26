@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Annotated, Optional
+from typing import List
 
 from fastapi import APIRouter, Depends, UploadFile, File, Form
 from pydantic import BaseModel
@@ -7,8 +7,16 @@ from pydantic import BaseModel
 from app.app_bundle.auth.authorized_req_user import CurrentUserInfo, get_current_user
 from app.user.user_enum import UserEntity
 # from app.user.user_service import generate_user_login, get_user, create_user, change_sub_merchant_password
-from app.visit.visit_service import assign, check_in_out, update_vitals, get_visits, get_image_urls, unassign, extend, \
+from app.visit.visit_service import (
+    assign,
+    check_in_out,
+    update_vitals,
+    get_visits,
+    get_image_urls,
+    unassign,
+    extend,
     create_missing_details_for_today
+)
 
 visit_router = APIRouter()
 

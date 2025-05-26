@@ -4,11 +4,11 @@ import pytz
 
 from app.app_bundle.env_config_settings import get_settings
 from app.app_bundle.s3_utils import upload_to_s3
-from app.user.user_enum import UserEntity
-from app.user.user_model import Yasho_User, hash_password, Client, Employee
+from app.user.user_model import Yasho_User, Client, Employee
 from app.visit.visit_model import Visit, VisitStatus
 
-IST = pytz.timezone("Asia/Kolkata")
+
+ist = pytz.timezone('Asia/Kolkata')
 
 
 async def get_user(user_id:str):
@@ -86,8 +86,8 @@ async def generate_user_login(mobile: str, password: str):
 
 
 async def get_all_users():
-    clients = await Client.find({"entity_type":"client"}).to_list()
-    employees = await Employee.find({"entity_type":"employee"}).to_list()
+    clients = await Client.find({"entity_type":"client","is_active":True}).to_list()
+    employees = await Employee.find({"entity_type":"employee","is_active":True}).to_list()
     users = clients + employees
     if not users:
         return "No users found",404
@@ -104,7 +104,9 @@ async def deactivate(user_id):
 
 
 async def get_attendance(user_id, start: datetime, end: datetime):
-    today = datetime.now().date()
+    today = datetime.now(tz=pytz.UTC).date()
+    start = ist.localize(start).astimezone(pytz.UTC)
+    end = ist.localize(end).astimezone(pytz.UTC)
     visits = await Visit.find({
         "assigned_emp_id": user_id,
         "from_ts": {"$lte": end},

@@ -10,7 +10,8 @@ from app.user.user_enum import UserEntity
 from app.user.user_service import get_user, get_client, get_employee
 from app.visit.visit_model import Visit, VisitStatus, Details
 
-IST = pytz.timezone("Asia/Kolkata")
+
+ist = pytz.timezone('Asia/Kolkata')
 
 # s3 = boto3.client(
 #     "s3",
@@ -30,15 +31,15 @@ IST = pytz.timezone("Asia/Kolkata")
 async def assign(admin_id:str,client_id:str,emp_id:str, from_ts:datetime,to_ts:datetime,lat:str,lng:str):
     status = VisitStatus.initiated
     visit_id = "V" + str(uuid4().int)[:6]
-    from_ts = from_ts.astimezone(IST)
-    to_ts = to_ts.astimezone(IST)
+    from_ts = ist.localize(from_ts).astimezone(pytz.UTC)
+    to_ts = ist.localize(to_ts).astimezone(pytz.UTC)
     client = await get_client(client_id)
     employee = await get_employee(emp_id)
     location = {
         "lat":lat,
         "lng":lng
     }
-    if not client or not employee or from_ts.date() < datetime.now().date():
+    if not client or not employee or from_ts.date() < datetime.now(tz=pytz.UTC).date():
         return {"message":"Incorrect Credentials"},401
     visit = await Visit.find_one({"assigned_client_id":client_id,"from_date":from_ts,"to_ts":to_ts})
     details = [{
@@ -72,7 +73,7 @@ async def check_in_out(
         lng:str,
         img:UploadFile = File(...)
 ):
-    date = datetime.now(IST)
+    date = datetime.now(tz=pytz.UTC)
     tomorrow = date+timedelta(days=1)
     extension = img.filename.split(".")[-1]
     name = str(uuid4().int)[:10]
@@ -144,7 +145,7 @@ async def update_vitals(visit_id,bloodPressure,sugar,notes):
         return "No visit assigned today",0
     if not notes:
         return "Provide notes",403
-    today = datetime.now(IST)
+    today = datetime.now(tz=pytz.UTC)
     for i in visit.details:
         if i.for_date.date() == today.date():
             i.vitals.notes=notes
@@ -187,7 +188,7 @@ async def get_image_urls(object_names):
     return response,0
 
 async def unassign(visit_id:str):
-    today = datetime.now(IST)
+    today = datetime.now(tz=pytz.UTC)
     visit = await Visit.find_one({"visit_id": visit_id})
     if not visit:
         return "No visit has been assigned",403
@@ -203,6 +204,7 @@ async def unassign(visit_id:str):
     return "Unassigned successfully",0
 
 async def extend(visit_id:str,to_ts:datetime):
+    to_ts = ist.localize(to_ts).astimezone(pytz.UTC)
     visit = await Visit.find_one({"visit_id": visit_id,"main_status": {"$ne": VisitStatus.cancelledVisit.value}})
     if not visit:
         return "Wrong visit to extend",403
@@ -212,7 +214,7 @@ async def extend(visit_id:str,to_ts:datetime):
 
 
 async def create_missing_details_for_today():
-    now_ist = datetime.now(IST)
+    now_ist = datetime.now(tz=pytz.UTC)
     today = now_ist.date()
     tomorrow = today + timedelta(days=1)
 
