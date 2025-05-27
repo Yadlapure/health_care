@@ -38,7 +38,7 @@ async def create_client(
 async def create_employee(
         name, email, mobile, address, sex, dob, guard_name, guard_mobile, id_proof, profile
 ):
-    if not name or not email or not mobile or not address or not profile or not id_proof or not sex or not dob or not guard_name or not guard_mobile:
+    if not any(name,email,mobile,address,profile,id_proof,sex,dob,guard_name,guard_mobile):
         return "Please provide all required fields",401
     user = await Yasho_User.find_one({"mobile": mobile})
     if user:

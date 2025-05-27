@@ -131,8 +131,8 @@ async def check_in_out(
 
 
 async def update_vitals(visit_id,bloodPressure,sugar,notes):
-    visit = await Visit.find_one({"visit_id":visit_id})
-    if not visit or visit.main_status.value != VisitStatus.checkedIn.value:
+    visit = await Visit.find_one({"visit_id":visit_id,"main_status": {"$ne": VisitStatus.cancelledVisit.value}})
+    if not visit:
         return "No visit assigned today",0
     if not notes:
         return "Provide notes",403
@@ -192,8 +192,8 @@ async def unassign(visit_id:str):
     return "Unassigned successfully",0
 
 async def extend(visit_id:str,to_ts:datetime):
-    visit = await Visit.find_one({"visit_id": visit_id,"main_status": {"$ne": VisitStatus.cancelledVisit.value}})
-    emp_visit = await Visit.find_one({"assigned_emp_id":visit.assigned_emp_id,"from_ts": {"$lte": to_ts},"to_ts": {"$gte": visit.from_ts}})
+    visit = await Visit.find_one({"visit_id": visit_id,"main_status":{"$nin":[VisitStatus.cancelledVisit,VisitStatus.checkedOut]}})
+    emp_visit = await Visit.find_one({"assigned_emp_id":visit.assigned_emp_id,"from_ts": {"$lte": to_ts},"to_ts": {"$gte": visit.from_ts},"main_status":{"$nin":[VisitStatus.cancelledVisit,VisitStatus.checkedOut]}})
     if emp_visit and emp_visit.main_status.value != VisitStatus.cancelledVisit:
         return "Employee Already assigned for the date",403
     if not visit:
