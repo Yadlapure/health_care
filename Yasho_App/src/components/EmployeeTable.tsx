@@ -42,6 +42,9 @@ export const EmployeeTable = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [fileInputKey, setFileInputKey] = useState(0);
 
+  // New states for preview modal
+  const [previewImage, setPreviewImage] = useState(null);
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -50,6 +53,7 @@ export const EmployeeTable = () => {
   const handleProfilePhotoChange = (e) => {
     if (e.target.files.length > 0) {
       setProfilePhoto(e.target.files[0]);
+      setDocumentsConfirmed(false);
     }
   };
 
@@ -138,6 +142,7 @@ export const EmployeeTable = () => {
         setProfilePhoto(null);
         setDocumentImages([]);
         setDocumentsConfirmed(false);
+        setFileInputKey((k) => k + 1); // reset file inputs
       } else {
         toast.error("Failed to add employee");
       }
@@ -147,7 +152,7 @@ export const EmployeeTable = () => {
       setIsSubmitting(false);
     }
   };
-  
+
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
@@ -183,6 +188,7 @@ export const EmployeeTable = () => {
       setProfilePhoto(null);
       setDocumentImages([]);
       setDocumentsConfirmed(false);
+      setFileInputKey((k) => k + 1);
     }
   }, [showAddForm]);
 
@@ -196,6 +202,19 @@ export const EmployeeTable = () => {
     formData.guard_mobile &&
     profilePhoto &&
     documentsConfirmed;
+
+  useEffect(() => {
+    return () => {
+      if (previewImage) URL.revokeObjectURL(previewImage);
+    };
+  }, [previewImage]);
+
+  const openImagePreview = (file) => {
+    if (previewImage) URL.revokeObjectURL(previewImage);
+    const url = URL.createObjectURL(file);
+    setPreviewImage(url);
+    setPreviewModalOpen(true);
+  };
 
   return (
     <>
@@ -215,7 +234,7 @@ export const EmployeeTable = () => {
             {employees.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={4}
+                  colSpan={6}
                   className="text-center py-6 text-muted-foreground"
                 >
                   No employees added
@@ -369,14 +388,19 @@ export const EmployeeTable = () => {
                   accept="image/*"
                   onChange={handleProfilePhotoChange}
                 />
-                {profilePhoto && (
-                  <img
-                    src={URL.createObjectURL(profilePhoto)}
-                    alt="Profile Preview"
-                    className="mt-2 h-32 w-32 object-cover rounded-full border"
-                  />
-                )}
               </label>
+
+              {profilePhoto && (
+                <img
+                  src={URL.createObjectURL(profilePhoto)}
+                  alt="Profile Preview"
+                  className="mt-2 h-32 w-32 object-cover rounded-full border cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openImagePreview(profilePhoto);
+                  }}
+                />
+              )}
             </div>
 
             <div className="w-full sm:w-1/2">
@@ -389,17 +413,22 @@ export const EmployeeTable = () => {
                   multiple
                   onChange={handleDocumentsChange}
                 />
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {documentImages.map((file, idx) => (
-                    <img
-                      key={idx}
-                      src={URL.createObjectURL(file)}
-                      alt={`Document ${idx + 1}`}
-                      className="h-24 w-24 object-cover rounded border"
-                    />
-                  ))}
-                </div>
               </label>
+
+              <div className="mt-2 flex flex-wrap gap-2">
+                {documentImages.map((file, idx) => (
+                  <img
+                    key={idx}
+                    src={URL.createObjectURL(file)}
+                    alt={`Document ${idx + 1}`}
+                    className="h-24 w-24 object-cover rounded border cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openImagePreview(file);
+                    }}
+                  />
+                ))}
+              </div>
             </div>
           </div>
 
@@ -422,6 +451,7 @@ export const EmployeeTable = () => {
         </div>
       )}
 
+      {/* Employee details modal */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent>
           <DialogHeader>
@@ -456,7 +486,11 @@ export const EmployeeTable = () => {
                 <strong>Profile Photo:</strong>
                 {selectedEmployee.profilePhoto ? (
                   <img
-                    src={URL.createObjectURL(selectedEmployee.profilePhoto)}
+                    src={
+                      selectedEmployee.profilePhoto instanceof File
+                        ? URL.createObjectURL(selectedEmployee.profilePhoto)
+                        : selectedEmployee.profilePhoto // or URL from API?
+                    }
                     alt="Profile"
                     className="mt-2 h-32 rounded border"
                   />
@@ -471,7 +505,9 @@ export const EmployeeTable = () => {
                   {(selectedEmployee.documentImages || []).map((file, idx) => (
                     <img
                       key={idx}
-                      src={URL.createObjectURL(file)}
+                      src={
+                        file instanceof File ? URL.createObjectURL(file) : file
+                      }
                       alt={`Document ${idx + 1}`}
                       className="h-24 rounded border"
                     />
@@ -479,6 +515,18 @@ export const EmployeeTable = () => {
                 </div>
               </div>
             </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={previewModalOpen} onOpenChange={setPreviewModalOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] p-0 overflow-hidden bg-black">
+          {previewImage && (
+            <img
+              src={previewImage}
+              alt="Preview"
+              className="w-full h-auto max-h-[90vh] object-contain"
+            />
           )}
         </DialogContent>
       </Dialog>

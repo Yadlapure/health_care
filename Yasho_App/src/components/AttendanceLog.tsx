@@ -30,7 +30,7 @@ interface AttendanceLogProps {
   user: { user_id: string };
 }
 
-const AttendanceLog: React.FC<AttendanceLogProps> = ({ user }) => {
+const AttendanceLog: React.FC<AttendanceLogProps> = ({ user, userDetails }) => {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [fromTs, setFromTs] = useState<Date>(startOfMonth(new Date()));
@@ -87,8 +87,6 @@ const AttendanceLog: React.FC<AttendanceLogProps> = ({ user }) => {
       };
     });
   };
-  
-  
 
   useEffect(() => {
     const fetchLogs = async () => {
@@ -100,7 +98,7 @@ const AttendanceLog: React.FC<AttendanceLogProps> = ({ user }) => {
           user?.user_id,
           format(fromTs, "yyyy-MM-dd"),
           format(toTs, "yyyy-MM-dd")
-        );        
+        );
         if (
           response.data &&
           typeof response.data === "object" &&
@@ -185,7 +183,6 @@ const AttendanceLog: React.FC<AttendanceLogProps> = ({ user }) => {
     (currentPage - 1) * logsPerPage,
     currentPage * logsPerPage
   );
-
 
   const getStatusInfo = (status: AttendanceStatus) => {
     switch (status) {
@@ -296,7 +293,7 @@ const AttendanceLog: React.FC<AttendanceLogProps> = ({ user }) => {
           <div className="text-center">In</div>
           <div className="text-center">Out</div>
           <div>Status</div>
-          <div>Action</div>
+          {userDetails !== "admin" && <div>Action</div>}
         </div>
 
         {currentLogs.length > 0 ? (
@@ -314,16 +311,18 @@ const AttendanceLog: React.FC<AttendanceLogProps> = ({ user }) => {
                   {icon}
                   <span>{log.status}</span>
                 </div>
-                {log.status !== "Success" && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => openReasonDialog(log.id)}
-                    className="text-xs"
-                  >
-                    <FaPencilAlt color="green" />
-                  </Button>
-                )}
+                {log.status !== "Success" &&
+                  userDetails !==
+                    "admin" && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => openReasonDialog(log.id)}
+                        className="text-xs"
+                      >
+                        <FaPencilAlt color="green" />
+                      </Button>
+                    )}
               </div>
             );
           })

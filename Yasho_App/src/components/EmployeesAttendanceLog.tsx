@@ -27,10 +27,16 @@ interface Employee {
   address: string;
   updated_at: string;
 }
+interface EmployeesAttendanceLogProps {
+    currentUserEntityType: string;
+  }
 
 const ITEMS_PER_PAGE = 10;
 
-const EmployeesAttendanceLog: React.FC = () => {
+const EmployeesAttendanceLog: React.FC<EmployeesAttendanceLogProps> = ({
+  currentUserEntityType,
+}) => {
+
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -112,7 +118,7 @@ const EmployeesAttendanceLog: React.FC = () => {
               <TableHead>Name</TableHead>
               <TableHead>Mobile</TableHead>
               <TableHead>Address</TableHead>
-              <TableHead className="text-center">Action</TableHead>
+                <TableHead>Action</TableHead>
             </TableRow>
           </TableHeader>
 
@@ -138,6 +144,7 @@ const EmployeesAttendanceLog: React.FC = () => {
                 <TableCell className="max-w-[130px] whitespace-pre-wrap break-words">
                   {emp.address}
                 </TableCell>
+
                 <TableCell className="text-center">
                   <Button
                     size="sm"
@@ -189,7 +196,10 @@ const EmployeesAttendanceLog: React.FC = () => {
           <h2 className="text-xl font-semibold mb-2 text-[#00847e]">
             Attendance for {selectedEmployee.name}
           </h2>
-          <AttendanceLog user={{ user_id: selectedEmployee.user_id }} />
+          <AttendanceLog
+            user={{ user_id: selectedEmployee.user_id }}
+            userDetails={currentUserEntityType}
+          />
         </div>
       )}
     </div>

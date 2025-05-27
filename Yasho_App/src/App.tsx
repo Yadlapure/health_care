@@ -118,6 +118,7 @@ const App = () => {
                 <AdminDashboard
                   setIsAuthenticated={setIsAuthenticated}
                   setUser={setUser}
+                  user={user}
                 />
               </ProtectedRoute>
             }

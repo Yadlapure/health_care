@@ -14,7 +14,7 @@ import { VisitTable } from "../components/VisitTable";
 import { EmployeeTable } from "../components/EmployeeTable";
 import EmployeesAttendanceLog from "../components/EmployeesAttendanceLog";
 
-const AdminDashboard = ({  setIsAuthenticated, setUser }) => {
+const AdminDashboard = ({ setIsAuthenticated, setUser, user }) => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
       <Header
@@ -100,7 +100,9 @@ const AdminDashboard = ({  setIsAuthenticated, setUser }) => {
                 <CardTitle>Attendance</CardTitle>
               </CardHeader>
               <CardContent>
-                <EmployeesAttendanceLog />
+                <EmployeesAttendanceLog
+                  currentUserEntityType={user?.data?.profile?.entity_type}
+                />
               </CardContent>
             </Card>
           </TabsContent>
