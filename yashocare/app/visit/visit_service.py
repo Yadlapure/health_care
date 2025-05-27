@@ -29,7 +29,7 @@ async def assign(admin_id:str,client_id:str,emp_id:str, from_ts:datetime,to_ts:d
         return "Client Already assigned for the date",403
     if emp_visit:
         return "Employee Already assigned for the date",403
-    if not client or not employee or from_ts.date() < datetime.now(tz=pytz.UTC).date():
+    if not client or not employee or from_ts.date() < datetime.now(tz=pytz.UTC).date() or to_ts.date() < datetime.now(tz=pytz.UTC).date():
         return {"message":"Incorrect Credentials"},401
     details = [{
         "daily_status": VisitStatus.initiated,
@@ -186,9 +186,6 @@ async def unassign(visit_id:str):
     if visit.main_status.value == VisitStatus.initiated.value:
         visit.main_status = VisitStatus.cancelledVisit
     else:
-        for i in visit.details:
-            if i.for_date.date() == today.date():
-                i.daily_status = VisitStatus.checkedOut
         visit.main_status = VisitStatus.checkedOut
 
     await visit.save()
