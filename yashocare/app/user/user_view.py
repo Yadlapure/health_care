@@ -58,7 +58,7 @@ async def handler_user_register(
         id_proof:Annotated[Optional[List[UploadFile]], File()] = [],photo : UploadFile = File(...),
         curr_user: CurrentUserInfo = Depends(get_current_user)
 ):
-    if curr_user["entity_type"] != UserEntity.employee.value:
+    if curr_user["entity_type"] != UserEntity.admin.value:
         return {"error":"Not Authorized","status_code":401}
     response,status_code = await create_employee(
         name=name,
