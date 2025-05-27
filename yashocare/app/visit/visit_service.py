@@ -13,21 +13,6 @@ from app.visit.visit_model import Visit, VisitStatus, Details
 
 ist = pytz.timezone('Asia/Kolkata')
 
-# s3 = boto3.client(
-#     "s3",
-#     aws_access_key_id = "get",
-#     aws_secret_access_key = "5MjHNKTLFCcxMpnue7qng0pMkNELZ3CDo7z2932V",
-#     region_name = "ap-south-1"
-# )
-# bucket_name = "yasho-image"
-# s3.create_bucket(
-#     Bucket = bucket_name,
-#     CreateBucketConfiguration = {'LocationConstraint':"ap-south-1"}
-# )
-
-# print(f"Created bucket {bucket_name}")
-
-
 async def assign(admin_id:str,client_id:str,emp_id:str, from_ts:datetime,to_ts:datetime,lat:str,lng:str):
     status = VisitStatus.initiated
     visit_id = "V" + str(uuid4().int)[:6]
