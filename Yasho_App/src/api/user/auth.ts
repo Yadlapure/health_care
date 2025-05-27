@@ -4,7 +4,7 @@ import apiClient from "../apiClient";
 const PreApi = {
   login: "/api/v1/user/login",
   me: "/api/v1/user/me",
-  register: "/api/v1/user/register",
+  register: "/api/v1/user/client-register",
   getAllUsers: "/api/v1/user/allUsers",
   updateRole: "/api/v1/user/role-update",
   registerEmployee: "/api/v1/user/employee-register",
@@ -42,11 +42,11 @@ const getMe = async () => {
   }
 };
 
-const register = async (name:any,email:any,mobile: any, password: any) => {
+const register = async (name:any,email:any,mobile: any,address: any, password: any) => {
   try {
     const response = await apiClient.post(
       `${PreApi.register}`,
-      { name, email,mobile,password },
+      { name, email,mobile,address,password },
       {
         headers: {
           "Content-Type": "application/json",

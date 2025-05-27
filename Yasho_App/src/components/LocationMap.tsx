@@ -34,7 +34,7 @@ const LocationMap = ({
   const updateCurrentLocation = async () => {
     try {
       setLoading(true);
-      const location = await GeolocationService.getCurrentPosition();      
+      const location = await GeolocationService.getCurrentPosition();       
            
       setCurrentLocation(location);
 

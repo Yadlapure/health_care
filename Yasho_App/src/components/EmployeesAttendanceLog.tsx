@@ -120,7 +120,19 @@ const EmployeesAttendanceLog: React.FC = () => {
             {paginatedEmployees.map((emp) => (
               <TableRow key={emp.user_id}>
                 <TableCell>{emp.user_id}</TableCell>
-                <TableCell>{emp.updated_at?.split("T")[0]}</TableCell>
+                <TableCell>
+                  {(() => {
+                    const date = new Date(
+                      new Date(emp.updated_at).getTime() + 5.5 * 60 * 60 * 1000
+                    );
+                    return `${date.getFullYear()}-${String(
+                      date.getMonth() + 1
+                    ).padStart(2, "0")}-${String(date.getDate()).padStart(
+                      2,
+                      "0"
+                    )}`;
+                  })()}
+                </TableCell>
                 <TableCell>{emp.name}</TableCell>
                 <TableCell>{emp.mobile}</TableCell>
                 <TableCell className="max-w-[130px] whitespace-pre-wrap break-words">

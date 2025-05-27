@@ -1,6 +1,11 @@
 export const formatDate = (dateString?: string) => {
   if (!dateString) return "Not recorded";
-  const date = new Date(dateString);
+
+  const utcDateString = dateString.endsWith("Z")
+    ? dateString
+    : dateString + "Z";
+  const date = new Date(utcDateString);
+
   return date.toLocaleString("en-IN", {
     timeZone: "Asia/Kolkata",
     year: "numeric",

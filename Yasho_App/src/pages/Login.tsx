@@ -17,19 +17,37 @@ const Login = ({ setIsAuthenticated, loading, setLoading, setUser }) => {
     e.preventDefault();
     setLoading(true);
 
+    const mobileRegex = /^[6-9]\d{9}$/;
+
+    if (!mobileRegex.test(mobile)) {
+      toast.error("Please enter a valid number.");
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await auth.login(mobile, password);
+
       if (response && response.status_code !== 0) {
         toast.error(response.error);
         return;
       }
+
+      if (response?.status_code !== 0 && response.data.token) {
+        toast.error(
+          response.message || "Something went wrong. Please try again later"
+        );
+        return;
+      }
+
       if (response?.status_code === 0 && response.data.token) {
-        const userResponse = await auth.getMe();        
+        const userResponse = await auth.getMe();
         if (userResponse?.data?.profile?.entity_type) {
           setUser(userResponse);
           setIsAuthenticated(true);
 
           toast.success("Login successful");
+
           switch (userResponse?.data?.profile?.entity_type) {
             case "admin":
               navigate("/admin");
@@ -37,8 +55,8 @@ const Login = ({ setIsAuthenticated, loading, setLoading, setUser }) => {
             case "client":
               navigate("/client");
               break;
-            case "pract":
-              navigate("/pract");
+            case "employee":
+              navigate("/employee");
               break;
             default:
               navigate("/");
@@ -51,11 +69,12 @@ const Login = ({ setIsAuthenticated, loading, setLoading, setUser }) => {
       }
     } catch (err) {
       console.error("err", err);
-      toast.error(err);
+      toast.error("Something went wrong. Please try again later.");
     } finally {
       setLoading(false);
     }
   };
+  
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
@@ -116,12 +135,12 @@ const Login = ({ setIsAuthenticated, loading, setLoading, setUser }) => {
             </Button>
           </form>
         </CardContent>
-        <div className="text-center mt-4">
+        <div className="text-center mt-4 mb-4">
           <p className="text-sm text-muted-foreground">
             Don't have an account?
             <Link
               to="/register"
-              className="text-healthcare-primary hover:underline"
+              className="text-healthcare-primary hover:underline p-1"
             >
               Register here
             </Link>

@@ -40,6 +40,8 @@ export const EmployeeTable = () => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [fileInputKey, setFileInputKey] = useState(0);
+
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -70,6 +72,9 @@ export const EmployeeTable = () => {
     const { name, email, mobile, dob, sex, guard_name, guard_mobile } =
       formData;
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const mobileRegex = /^(?:\+91|0)?[6-9]\d{9}$/;
+
     if (
       !name ||
       !email ||
@@ -82,6 +87,21 @@ export const EmployeeTable = () => {
       !documentsConfirmed
     ) {
       toast.error("Please complete all fields and confirm documents");
+      return;
+    }
+
+    if (!emailRegex.test(email)) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
+    if (!mobileRegex.test(mobile)) {
+      toast.error("Please enter a valid mobile number");
+      return;
+    }
+
+    if (!mobileRegex.test(guard_mobile)) {
+      toast.error("Please enter a valid guardian mobile number");
       return;
     }
 
@@ -127,7 +147,7 @@ export const EmployeeTable = () => {
       setIsSubmitting(false);
     }
   };
-
+  
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
@@ -184,6 +204,7 @@ export const EmployeeTable = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
+              <TableHead>Joining</TableHead>
               <TableHead>Address</TableHead>
               <TableHead>Mobile</TableHead>
               <TableHead>Status</TableHead>
@@ -204,6 +225,20 @@ export const EmployeeTable = () => {
               employees.map((emp, index) => (
                 <TableRow key={index}>
                   <TableCell>{emp.name}</TableCell>
+                  <TableCell>
+                    {(() => {
+                      const date = new Date(
+                        new Date(emp.updated_at).getTime() +
+                          5.5 * 60 * 60 * 1000
+                      );
+                      return `${date.getFullYear()}-${String(
+                        date.getMonth() + 1
+                      ).padStart(2, "0")}-${String(date.getDate()).padStart(
+                        2,
+                        "0"
+                      )}`;
+                    })()}
+                  </TableCell>
                   <TableCell className="max-w-[130px] whitespace-pre-wrap break-words">
                     {emp.address}
                   </TableCell>
@@ -329,6 +364,7 @@ export const EmployeeTable = () => {
               <label className="block">
                 Upload Profile Photo:
                 <Input
+                  key={`profile-${fileInputKey}`}
                   type="file"
                   accept="image/*"
                   onChange={handleProfilePhotoChange}
@@ -347,6 +383,7 @@ export const EmployeeTable = () => {
               <label className="block">
                 Upload Required Documents:
                 <Input
+                  key={`documents-${fileInputKey}`}
                   type="file"
                   accept="image/*"
                   multiple

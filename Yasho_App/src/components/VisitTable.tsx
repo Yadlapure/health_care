@@ -261,7 +261,13 @@ export const VisitTable = () => {
                   <div>
                     <strong>Check-In Time:</strong>{" "}
                     {detail.checkIn?.at
-                      ? new Date(detail.checkIn.at).toLocaleTimeString()
+                      ? new Date(
+                          new Date(detail.checkIn.at).getTime() +
+                            5.5 * 60 * 60 * 1000
+                        ).toLocaleTimeString("en-IN", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
                       : "N/A"}
                   </div>
                   {detail.checkIn?.img &&
@@ -279,7 +285,13 @@ export const VisitTable = () => {
                   <div>
                     <strong>Check-Out Time:</strong>{" "}
                     {detail.checkOut?.at
-                      ? new Date(detail.checkOut.at).toLocaleTimeString()
+                      ? new Date(
+                          new Date(detail.checkOut.at).getTime() +
+                            5.5 * 60 * 60 * 1000
+                        ).toLocaleTimeString("en-IN", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
                       : "N/A"}
                   </div>
 

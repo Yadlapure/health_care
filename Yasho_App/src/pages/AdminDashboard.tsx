@@ -62,10 +62,7 @@ const AdminDashboard = ({  setIsAuthenticated, setUser }) => {
           <TabsContent value="clients" className="mx-2">
             <Card>
               <CardHeader>
-                <CardTitle>Users Management</CardTitle>
-                <CardDescription>
-                  View and manage user roles across the platform
-                </CardDescription>
+                <CardTitle>Clients</CardTitle>
               </CardHeader>
 
               <CardContent>

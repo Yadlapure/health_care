@@ -69,18 +69,25 @@ const AttendanceLog: React.FC<AttendanceLogProps> = ({ user }) => {
       }
     >
   ): LogEntry[] => {
-    return Object.entries(data).map(([date, value], index) => ({
-      id: `${date}-${index}`,
-      date,
-      status: statusMap[value.status.toLowerCase()] || "NC",
-      inTime: value.check_in_time
-        ? format(new Date(value.check_in_time), "HH:mm")
-        : undefined,
-      outTime: value.check_out_time
-        ? format(new Date(value.check_out_time), "HH:mm")
-        : undefined,
-    }));
+    return Object.entries(data).map(([date, value], index) => {
+      const toIST = (utcString: string | null) => {
+        if (!utcString) return undefined;
+        const utcDate = new Date(utcString);
+        const istOffset = 5.5 * 60 * 60 * 1000;
+        const istDate = new Date(utcDate.getTime() + istOffset);
+        return format(istDate, "HH:mm");
+      };
+
+      return {
+        id: `${date}-${index}`,
+        date,
+        status: statusMap[value.status.toLowerCase()] || "NC",
+        inTime: toIST(value.check_in_time),
+        outTime: toIST(value.check_out_time),
+      };
+    });
   };
+  
   
 
   useEffect(() => {
@@ -294,6 +301,8 @@ const AttendanceLog: React.FC<AttendanceLogProps> = ({ user }) => {
 
         {currentLogs.length > 0 ? (
           currentLogs.map((log) => {
+            console.log("log", log);
+            
             const { color, icon } = getStatusInfo(log.status);
             return (
               <div

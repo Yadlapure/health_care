@@ -19,14 +19,40 @@ const Register = () => {
   const [mobile, setMobile] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [address,setAddress] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [mobileError, setMobileError] = useState("");
+
 
   const navigate = useNavigate();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    setEmailError("");
+    setMobileError("");
+
+    const emailRegex = /^\S+@\S+\.\S+$/;
+    const mobileRegex = /^[6-9]\d{9}$/;
+
+    if (!emailRegex.test(email)) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+
+    if (!mobileRegex.test(mobile)) {
+      toast.error("Please enter a valid number.");
+      return;
+    }
+
     setLoading(true);
     try {
-      const response = await auth.register(name, email, mobile, password);
+      const response = await auth.register(
+        name,
+        email,
+        mobile,
+        address,
+        password
+      );
       if (response?.status_code === 0) {
         toast.success(response?.message);
         navigate("/login");
@@ -40,7 +66,7 @@ const Register = () => {
       setLoading(false);
     }
   };
-
+  
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
@@ -112,6 +138,24 @@ const Register = () => {
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="address">Full Address</Label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FaUser className="text-gray-400" />
+                </div>
+                <Input
+                  id="address"
+                  type="text"
+                  placeholder="Address"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  className="pl-10"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -141,7 +185,7 @@ const Register = () => {
                 Already have an account?
                 <Link
                   to="/login"
-                  className="text-healthcare-primary hover:underline"
+                  className="text-healthcare-primary hover:underline p-1"
                 >
                   Login here
                 </Link>
