@@ -40,7 +40,7 @@ class Attendance(BaseModel):
     from_ts:datetime
     to_ts:datetime
 
-@user_router.post("/client-register")
+@user_router.post("/register")
 async def handler_user_register(create_req:ClientRegister):
     response,status_code = await create_client(
         name = create_req.name,

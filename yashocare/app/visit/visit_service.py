@@ -92,7 +92,7 @@ async def check_in_out(
         for i in visit.details:
             if i.for_date.date() == date.date():
                 if i.daily_status.value == VisitStatus.initiated.value:
-                    check_in_object_name = upload_to_s3(img.file,f"checkin/{imgname}",get_settings().config_s3_bucket,extension)
+                    check_in_object_name = upload_to_s3(img.file,f"yashocare/checkin/{visit_id}/{date.date()}/{imgname}",get_settings().config_s3_bucket,extension)
                     if not check_in_object_name:
                         return "Error while uploading",403
                     i.checkIn.at = date
@@ -107,7 +107,7 @@ async def check_in_out(
         for i in visit.details:
             if i.for_date.date() == date.date():
                 if i.daily_status.value == VisitStatus.initiated.value:
-                    check_in_object_name = upload_to_s3(img.file,f"checkin/{visit_id}/{date.date()}/{imgname}",get_settings().config_s3_bucket,extension)
+                    check_in_object_name = upload_to_s3(img.file,f"yashocare/checkin/{visit_id}/{date.date()}/{imgname}",get_settings().config_s3_bucket,extension)
                     if not check_in_object_name:
                         return "Error while uploading",403
                     i.checkIn.at = date
@@ -121,7 +121,7 @@ async def check_in_out(
                         visit.main_status = VisitStatus.checkedOut
                     if not i.vitals.notes:
                         return "Provide vitals before checkout",0
-                    check_out_object_name = upload_to_s3(img.file,f"checkout/{visit_id}/{date.date()}/{imgname}",get_settings().config_s3_bucket,extension)
+                    check_out_object_name = upload_to_s3(img.file,f"yashocare/checkout/{visit_id}/{date.date()}/{imgname}",get_settings().config_s3_bucket,extension)
                     if not check_out_object_name:
                         return "Error while uploading",403
                     i.checkOut.at = date

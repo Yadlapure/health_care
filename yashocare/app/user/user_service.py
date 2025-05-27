@@ -49,14 +49,14 @@ async def create_employee(
         extension = img.filename.split(".")[-1]
         id_name = str(uuid4().int)[:10]
         imgname = id_name+"."+extension
-        object_name = upload_to_s3(img.file,f"id_proof/{user_id}/{imgname}",get_settings().config_s3_bucket,extension)
+        object_name = upload_to_s3(img.file,f"yashocare/id_proof/{user_id}/{imgname}",get_settings().config_s3_bucket,extension)
         if not object_name:
             return "Error while uploading id_proofs",403
         id_proofs.append(object_name)
     extension = profile.filename.split(".")[-1]
     profileImageName = str(uuid4().int)[:10]
     imgname = profileImageName+"."+extension
-    profile_name = upload_to_s3(profile.file,f"profile/{user_id}/{imgname}",get_settings().config_s3_bucket,extension)
+    profile_name = upload_to_s3(profile.file,f"yashocare/profile/{user_id}/{imgname}",get_settings().config_s3_bucket,extension)
     user = Employee(
         user_id=user_id,
         name=name,
