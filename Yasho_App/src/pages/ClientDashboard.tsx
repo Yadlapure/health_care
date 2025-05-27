@@ -195,8 +195,8 @@ const ClientDashboard = ({ user, setIsAuthenticated, setUser }) => {
               practVisit.map(
                 ({ visit_id, detail, assigned_pract, ...rest }, index) => (
                   <VisitCard
-                    key={`${visit_id}-${index}`} // unique key per detail
-                    visit={{ ...rest, detail, visit_id }} // pass detail inside visit
+                    key={`${visit_id}-${index}`}
+                    visit={{ ...rest, detail, visit_id }}
                     practitionerName={
                       assigned_pract || "No practitioner assigned"
                     }

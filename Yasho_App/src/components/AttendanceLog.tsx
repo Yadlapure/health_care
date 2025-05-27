@@ -301,8 +301,6 @@ const AttendanceLog: React.FC<AttendanceLogProps> = ({ user }) => {
 
         {currentLogs.length > 0 ? (
           currentLogs.map((log) => {
-            console.log("log", log);
-            
             const { color, icon } = getStatusInfo(log.status);
             return (
               <div

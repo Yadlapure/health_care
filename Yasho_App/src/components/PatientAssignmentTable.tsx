@@ -456,12 +456,39 @@ export const PatientAssignmentTable = () => {
                         </SelectTrigger>
                         <SelectContent>
                           {practitioners
-                            .filter(
-                              (practitioner) =>
-                                !assignedPractitionerIds.has(
-                                  practitioner.user_id
-                                )
-                            )
+                            .filter((practitioner) => {
+                              const selectedFromStr =
+                                selectedDates[client.user_id]?.fromDate;
+                              const selectedToStr =
+                                selectedDates[client.user_id]?.toDate;
+
+                              if (!selectedFromStr || !selectedToStr)
+                                return false;
+
+                              const normalize = (dStr) => {
+                                const d = new Date(dStr);
+                                d.setHours(0, 0, 0, 0);
+                                return d.getTime();
+                              };
+
+                              const selectedFrom = normalize(selectedFromStr);
+                              const selectedTo = normalize(selectedToStr);
+
+                              const visit = Object.values(visitMap).find(
+                                (v) => v.practitionerId === practitioner.user_id
+                              );
+
+                              if (!visit) return true;
+
+                              const assignedFrom = normalize(visit.fromDate);
+                              const assignedTo = normalize(visit.toDate);
+
+                              const overlaps =
+                                selectedFrom <= assignedTo &&
+                                selectedTo >= assignedFrom;
+
+                              return !overlaps;
+                            })
                             .map((practitioner) => (
                               <SelectItem
                                 key={practitioner.user_id}
