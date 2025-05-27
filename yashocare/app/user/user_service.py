@@ -49,7 +49,7 @@ async def create_employee(
         extension = img.filename.split(".")[-1]
         id_name = str(uuid4().int)[:10]
         imgname = id_name+"."+extension
-        object_name = upload_to_s3(img.file,f"yashocare/id_proof/{user_id}/{imgname}",get_settings().config_s3_bucket,extension)
+        object_name = upload_to_s3(img.file,f"yashocare/id_proof/client/{user_id}/{imgname}",get_settings().config_s3_bucket,extension)
         if not object_name:
             return "Error while uploading id_proofs",403
         id_proofs.append(object_name)
@@ -120,7 +120,7 @@ async def get_attendance(user_id, start: datetime, end: datetime):
 
     for visit in visits:
         from_date = visit.from_ts.date()
-        to_date = min(visit.to_ts.date(), today - timedelta(days=1))
+        to_date = min(visit.to_ts.date(), today)
 
         if from_date > to_date:
             continue

@@ -29,7 +29,7 @@ async def assign(admin_id:str,client_id:str,emp_id:str, from_ts:datetime,to_ts:d
         return "Client Already assigned for the date",403
     if emp_visit:
         return "Employee Already assigned for the date",403
-    if not client or not employee or from_ts.date() < datetime.now(tz=pytz.UTC).date() or to_ts.date() < datetime.now(tz=pytz.UTC).date():
+    if not any(client,employee) or from_ts.date() < datetime.now(tz=pytz.UTC).date() or to_ts.date() < datetime.now(tz=pytz.UTC).date():
         return {"message":"Incorrect Credentials"},401
     details = [{
         "daily_status": VisitStatus.initiated,
@@ -193,7 +193,7 @@ async def unassign(visit_id:str):
 
 async def extend(visit_id:str,to_ts:datetime):
     visit = await Visit.find_one({"visit_id": visit_id,"main_status":{"$nin":[VisitStatus.cancelledVisit,VisitStatus.checkedOut]}})
-    if visit.to_ts.date() <= to_ts.date():
+    if visit.to_ts.date() >= to_ts.date():
         return "Extend date must be greater than assigned date",403
     emp_visit = await Visit.find_one({"assigned_emp_id":visit.assigned_emp_id,"from_ts": {"$lte": to_ts},"to_ts": {"$gte": visit.to_ts},"main_status":{"$nin":[VisitStatus.cancelledVisit,VisitStatus.checkedOut]}})
     if emp_visit and emp_visit.main_status.value != VisitStatus.cancelledVisit:
