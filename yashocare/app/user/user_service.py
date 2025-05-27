@@ -49,14 +49,14 @@ async def create_employee(
         extension = img.filename.split(".")[-1]
         id_name = str(uuid4().int)[:10]
         imgname = id_name+"."+extension
-        object_name = upload_to_s3(img.file,f"yashocare/id_proof/client/{user_id}/{imgname}",get_settings().config_s3_bucket,extension)
+        object_name = upload_to_s3(img.file,f"yashocare/employee/id_proof/{user_id}/{imgname}",get_settings().config_s3_bucket,extension)
         if not object_name:
             return "Error while uploading id_proofs",403
         id_proofs.append(object_name)
     extension = profile.filename.split(".")[-1]
     profileImageName = str(uuid4().int)[:10]
     imgname = profileImageName+"."+extension
-    profile_name = upload_to_s3(profile.file,f"yashocare/profile/{user_id}/{imgname}",get_settings().config_s3_bucket,extension)
+    profile_name = upload_to_s3(profile.file,f"yashocare/employee/profile/{user_id}/{imgname}",get_settings().config_s3_bucket,extension)
     user = Employee(
         user_id=user_id,
         name=name,
@@ -75,8 +75,8 @@ async def create_employee(
     return user,0
 
 async def generate_user_login(mobile: str, password: str):
-    mobile = str(mobile.replace(" ", "").lower())
-    password = str(password.replace(" ", ""))
+    mobile = mobile
+    password = password
     user = await Yasho_User.find_one({"mobile":mobile})
     if not user:
         return "User Not Found, Please Register!!", 404
@@ -152,3 +152,38 @@ async def get_attendance(user_id, start: datetime, end: datetime):
             }
 
     return attendance, 0
+
+
+async def update_reason(user_id:str,date:datetime,reason:str):
+    visit = await Visit.find({"assigned_emp_id":user_id,"from_ts":{"$gte":date}}).to_list()
+    updated = False
+    for v in visit:
+        for i in v.details:
+            if i.for_date.date() == date.date():
+                i.reason = reason
+                await v.save()
+                updated=True
+                break
+
+        if updated:
+            break
+    if updated:
+        return "Reason updated",0
+    return "Reason not updated",402
+
+async def client_id_proof(user_id:str,id_proof):
+    user = await get_client(user_id=user_id)
+    if not user:
+        return "User don't exists", 401
+    id_proofs=[]
+    for img in id_proof:
+        extension = img.filename.split(".")[-1]
+        id_name = str(uuid4().int)[:10]
+        imgname = id_name+"."+extension
+        object_name = upload_to_s3(img.file,f"yashocare/client/id_proof/{user_id}/{imgname}",get_settings().config_s3_bucket,extension)
+        if not object_name:
+            return "Error while uploading id_proofs",403
+        id_proofs.append(object_name)
+    user.id_proof = id_proofs
+    await user.save()
+    return "Id proofs uploaded successfully",0

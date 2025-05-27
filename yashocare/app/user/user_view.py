@@ -13,7 +13,9 @@ from app.user.user_service import (
     create_employee,
     get_all_users,
     deactivate,
-    get_attendance, get_client, get_employee
+    get_attendance, get_employee,
+    update_reason,
+    client_id_proof
 )
 
 user_router = APIRouter()
@@ -40,6 +42,15 @@ class Attendance(BaseModel):
     from_ts:datetime
     to_ts:datetime
 
+
+class Update(BaseModel):
+    reason:str
+    date:datetime
+
+
+class ClientIdProof(BaseModel):
+    user_id:str
+
 @user_router.post("/register")
 async def handler_user_register(create_req:ClientRegister):
     response,status_code = await create_client(
@@ -54,8 +65,8 @@ async def handler_user_register(create_req:ClientRegister):
 
 @user_router.post("/employee-register")
 async def handler_user_register(
-        name:str= Form(...),email:str = Form(...),mobile:str=Form(...),address:str=Form(...),sex:Literal["male","female"]=Form(...),dob:str=Form(...),guard_name:str=Form(...),guard_mobile:str=Form(...),
-        id_proof:Annotated[Optional[List[UploadFile]], File()] = [],photo : UploadFile = File(...),
+        id_proof:Annotated[List[UploadFile], File()],name:str= Form(...),email:str = Form(...),mobile:str=Form(...),address:str=Form(...),sex:Literal["male","female"]=Form(...),dob:str=Form(...),guard_name:str=Form(...),guard_mobile:str=Form(...),
+        photo : UploadFile = File(...),
         curr_user: CurrentUserInfo = Depends(get_current_user)
 ):
     if curr_user["entity_type"] != UserEntity.admin.value:
@@ -98,13 +109,10 @@ async def handler_get_me_detail(
         curr_user: CurrentUserInfo = Depends(get_current_user)
 ):
     user_id = curr_user["user_id"]
-    user = None
-    if curr_user["entity_type"] == "admin":
-        user = await get_user(user_id=user_id)
-    elif curr_user["entity_type"] == "employee":
+    if curr_user["entity_type"] == "employee":
         user = await get_employee(user_id=user_id)
     else:
-        user = await get_client(user_id=user_id)
+        user = await get_user(user_id=user_id)
     if not user:
         return {"status_code":404,"data":"Invalid user"}
     return {
@@ -134,6 +142,20 @@ async def handler_get_all_users(
     return {"status_code": status_code, "error": response}
 
 
+@user_router.post("/client-id-proof")
+async def handler_add_client_id_proof(
+        id_proof:Annotated[List[UploadFile], File()],
+        user_id:str=Form(...),
+        curr_user: CurrentUserInfo = Depends(get_current_user)
+):
+    if curr_user["entity_type"] != UserEntity.admin.value:
+        return {"error":"Not Authorized","status_code":401}
+    response, status_code = await client_id_proof(user_id=user_id,id_proof=id_proof)
+    if status_code == 0:
+        return {"status_code": status_code, "data": response}
+    return {"status_code": status_code, "error": response}
+
+
 @user_router.delete("/deactivate")
 async def handler_deactivate(
         user_id,
@@ -155,6 +177,19 @@ async def handler_get_attendance(
     if curr_user["entity_type"] == UserEntity.client.value:
         return {"error":"Not Authorized","status_code":401}
     response, status_code = await get_attendance(user_id=att_req.user_id,start=att_req.from_ts,end=att_req.to_ts)
+    if status_code == 0:
+        return {"status_code": status_code, "data": response}
+    return {"status_code": status_code, "error": response}
+
+
+@user_router.post("/update-reason")
+async def handler_update_reason(
+        reason_req: Update,
+        curr_user: CurrentUserInfo = Depends(get_current_user)
+):
+    if curr_user["entity_type"] != UserEntity.employee.value:
+        return {"error":"Not Authorized","status_code":401}
+    response, status_code = await update_reason(user_id=curr_user["user_id"],date=reason_req.date,reason=reason_req.reason)
     if status_code == 0:
         return {"status_code": status_code, "data": response}
     return {"status_code": status_code, "error": response}

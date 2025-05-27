@@ -50,6 +50,7 @@ class Admin(Yasho_User):
 class Client(Yasho_User):
     entity_type:UserEntity = UserEntity.client
     address: Optional[str] = ""
+    id_proof: Optional[List[str]] = []
 
 class Employee(Yasho_User):
     entity_type:UserEntity = UserEntity.employee

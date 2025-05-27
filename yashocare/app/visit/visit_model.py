@@ -38,6 +38,7 @@ class Details(BaseModel):
     checkOut:Optional[CheckInOut]={}
     daily_status: VisitStatus = VisitStatus.initiated
     vitals:Optional[Vital]={}
+    reason:Optional[str]=None
     for_date:datetime = Field(default_factory=lambda: datetime.now(tz=pytz.UTC).date().isoformat())
 
 class Visit(MongoDocument):
