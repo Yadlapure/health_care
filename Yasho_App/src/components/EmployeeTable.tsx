@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "./ui/select";
 import auth from "../api/user/auth";
+import visits from "../api/visits/visits";
 
 export const EmployeeTable = () => {
   const [formData, setFormData] = useState({
@@ -42,9 +43,13 @@ export const EmployeeTable = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [fileInputKey, setFileInputKey] = useState(0);
 
-  // New states for preview modal
   const [previewImage, setPreviewImage] = useState(null);
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [selectedEmployeeDocs, setSelectedEmployeeDocs] = useState({
+    profilePhoto: null,
+    documentImages: [],
+  });
+  const [loadingDocs, setLoadingDocs] = useState(false);  
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -142,7 +147,7 @@ export const EmployeeTable = () => {
         setProfilePhoto(null);
         setDocumentImages([]);
         setDocumentsConfirmed(false);
-        setFileInputKey((k) => k + 1); // reset file inputs
+        setFileInputKey((k) => k + 1);
       } else {
         toast.error("Failed to add employee");
       }
@@ -161,6 +166,7 @@ export const EmployeeTable = () => {
           const employeeList = response.data.filter(
             (user) => user.entity_type === "employee"
           );
+
           setEmployees(employeeList);
         } else {
           toast.error("Failed to load employees");
@@ -172,6 +178,34 @@ export const EmployeeTable = () => {
 
     fetchEmployees();
   }, []);
+
+
+  const handleMoreDetails = async (emp) => {
+    setSelectedEmployee(emp);
+    setModalOpen(true);
+    setLoadingDocs(true);
+
+    try {
+      let profilePhotoUrl = null;
+      if (emp.profie_photo) {
+        profilePhotoUrl = await fetchSingleImageURL(emp.profie_photo);
+      }
+
+      const docUrls = await fetchImageURLs(emp.id_proof);
+
+      setSelectedEmployeeDocs({
+        profilePhoto: profilePhotoUrl,
+        documentImages: docUrls,
+      });
+    } catch (error) {
+      toast.error("Failed to load images");
+      setSelectedEmployeeDocs({ profilePhoto: null, documentImages: [] });
+    } finally {
+      setLoadingDocs(false);
+    }
+  };
+  
+  
 
   useEffect(() => {
     if (!showAddForm) {
@@ -209,13 +243,46 @@ export const EmployeeTable = () => {
     };
   }, [previewImage]);
 
-  const openImagePreview = (file) => {
-    if (previewImage) URL.revokeObjectURL(previewImage);
-    const url = URL.createObjectURL(file);
-    setPreviewImage(url);
-    setPreviewModalOpen(true);
+  const fetchImageURLs = async (paths) => {
+    if (!paths || paths.length === 0) return [];
+    try {
+      const response = await visits.getImageURL(paths);
+      if (response.status_code === 0 && Array.isArray(response.data)) {
+        return response.data;
+      }
+    } catch {
+      toast.error("Failed to load images");
+    }
+    return [];
   };
 
+  const fetchSingleImageURL = async (path) => {
+    if (!path) return null;
+    try {
+      const response = await visits.getImageURL([path]);
+      if (response.status_code === 0 && Array.isArray(response.data)) {
+        return response.data[0];
+      }
+    } catch {
+      toast.error("Failed to load image");
+    }
+    return null;
+  };
+
+  const openImagePreview = (img) => {
+    if (previewImage && previewImage.startsWith("blob:")) {
+      URL.revokeObjectURL(previewImage);
+    }
+
+    if (typeof img === "string") {
+      setPreviewImage(img);
+    } else if (img instanceof File) {
+      const url = URL.createObjectURL(img);
+      setPreviewImage(url);
+    }
+    setPreviewModalOpen(true);
+  };
+  
   return (
     <>
       <div className="rounded-md border mt-8">
@@ -276,10 +343,7 @@ export const EmployeeTable = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => {
-                        setSelectedEmployee(emp);
-                        setModalOpen(true);
-                      }}
+                      onClick={() => handleMoreDetails(emp)}
                     >
                       More Details
                     </Button>
@@ -451,7 +515,6 @@ export const EmployeeTable = () => {
         </div>
       )}
 
-      {/* Employee details modal */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent>
           <DialogHeader>
@@ -482,38 +545,45 @@ export const EmployeeTable = () => {
                 {selectedEmployee.guard_mobile})
               </div>
 
-              <div>
-                <strong>Profile Photo:</strong>
-                {selectedEmployee.profilePhoto ? (
-                  <img
-                    src={
-                      selectedEmployee.profilePhoto instanceof File
-                        ? URL.createObjectURL(selectedEmployee.profilePhoto)
-                        : selectedEmployee.profilePhoto // or URL from API?
-                    }
-                    alt="Profile"
-                    className="mt-2 h-32 rounded border"
-                  />
-                ) : (
-                  <p>No profile photo available</p>
-                )}
-              </div>
+              {loadingDocs ? (
+                <p>Loading images...</p>
+              ) : (
+                <>
+                  <div>
+                    <strong>Profile Photo:</strong>
+                    {selectedEmployeeDocs.profilePhoto ? (
+                      <img
+                        src={
+                          Object.values(selectedEmployeeDocs.profilePhoto)[0]
+                        }
+                        alt="Profile"
+                        className="mt-2 h-32 rounded border"
+                      />
+                    ) : (
+                      <p>No profile photo available</p>
+                    )}
+                  </div>
 
-              <div>
-                <strong>Documents:</strong>
-                <div className="grid grid-cols-2 gap-2 mt-2">
-                  {(selectedEmployee.documentImages || []).map((file, idx) => (
-                    <img
-                      key={idx}
-                      src={
-                        file instanceof File ? URL.createObjectURL(file) : file
-                      }
-                      alt={`Document ${idx + 1}`}
-                      className="h-24 rounded border"
-                    />
-                  ))}
-                </div>
-              </div>
+                  <div>
+                    <strong>Documents:</strong>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      {(selectedEmployeeDocs.documentImages || []).map(
+                        (docObj, idx) => {
+                          const url = Object.values(docObj)[0];
+                          return (
+                            <img
+                              key={idx}
+                              src={url}
+                              alt={`Document ${idx + 1}`}
+                              className="h-24 rounded border"
+                            />
+                          );
+                        }
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           )}
         </DialogContent>

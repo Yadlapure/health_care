@@ -276,7 +276,7 @@ export const VisitTable = () => {
                         <img
                           src={checkoutImages[detail.checkIn.img]}
                           alt="Check-In"
-                          className="w-32 h-32 object-cover rounded-full border cursor-pointer transition-transform hover:scale-110"
+                          className="w-32 h-32 object-cover rounded-full border cursor-pointer transition-transform"
                           title="Check-In image"
                         />
                       </div>
@@ -301,7 +301,7 @@ export const VisitTable = () => {
                         <img
                           src={checkoutImages[detail.checkOut.img]}
                           alt="Checkout"
-                          className="w-32 h-32 object-cover rounded-full border cursor-pointer transition-transform hover:scale-110"
+                          className="w-32 h-32 object-cover rounded-full border cursor-pointer transition-transform"
                           title="Checkout image"
                         />
                       </div>

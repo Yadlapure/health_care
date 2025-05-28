@@ -35,8 +35,6 @@ const LocationMap = ({
     try {
       setLoading(true);
       const location = await GeolocationService.getCurrentPosition(); 
-      console.log("location", location);
-            
            
       setCurrentLocation(location);
 
